@@ -244,6 +244,7 @@ void main() {
 
 - **预乘Alpha(Premultiplied Alpha)**：输出的RGB通道必须先物理乘以Alpha值。Android及主流图形渲染器的Alpha混合机制（`GL_ONE, GL_ONE_MINUS_SRC_ALPHA`）要求如此，否则在经过插值过滤后，半透明交界处会出现一圈灰黑边 ✅已验证
 - **discard机制**：极小透明度像素（如全透明区域）直接丢弃，不发生Blend从而杜绝边缘噪边 ✅已验证
+- **discard的代价（补充）**：`discard` 会关闭该着色器的 Early-Z（提前深度测试）/Hi-Z 优化——GPU 无法再对被遮挡片元提前剔除，可能反而拖慢接近全不透明区域的填充效率。因此 discard 仅在透明像素占比较高的特效（粒子、稀疏贴纸、镂空遮罩）中收益明显；对接近全不透明的视频帧应谨慎，可改用让 `alpha=0` 走标准 Blend，由硬件 Early-Z 处理 ⚠️有条件成立
 - **0.0039阈值**：即1/255临界值，低于此值的Alpha在8-bit精度下不可感知
 
 #### 跨平台codec对alpha支持不一致
