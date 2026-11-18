@@ -92,7 +92,7 @@
       "objectives": [
         "解释亮度/色度分离与 4:2:0 节省空间的数学关系",
         "区分 NV12 与 NV21 的内存布局",
-        "说明 Stride Why 错了会花屏"
+        "说明忽略 stride 为什么会花屏"
       ],
       "prerequisites": [
         "L00"

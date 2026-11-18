@@ -4,6 +4,47 @@
 > 权威口径见 `DECISIONS.md`；当前阶段见 `WORKFLOW_STATE.md`。
 > P5 + Part B 执行期间遵循 D09（不 commit/push）；2026-11-18 用户新授权 commit + push 到 origin/master，见文末"git 提交"段与 DECISIONS.md D09 更新。
 
+## 2026-11-18 · P6 教材质量升级（Master Prompt V2.0）
+
+### 第一步审计（实测）
+- 远程 master HEAD = 本地 HEAD = `5359259`（ls-remote 实测），工作区审计开始时干净。
+- 门禁基线：build 63 docs / validate 11 checks 0 FAIL / arc 5/5 OK / review_gate 29 claims（16 verified / 7 conditional / 6 open）。
+- 产出：`PROJECT_CURRENT_STATE.md`、`CURRENT_GAPS.md`、`NEXT_PHASE_PLAN.md`（根目录）。
+- 记录性偏差：CHANGELOG P5 数字（62/452/2107KB）与最终源树（63/461/2136KB）漂移，已提交 content.js 与重建产物文档集合一致（仅时间戳类差异）；README 数字过时但按 D10.5 不动，列决策提案。本机 `python` 解析到 cygwin stub，门禁改用 `py -3`（D11.10）。
+
+### P6.1 深度诊断
+- 新增 `courses/video-rendering-journey/教材质量诊断.md`：十维度逐章判定 + 源文档行号核对 + 跨层数据交叉核对。
+- 关键发现：L02"drift 强纠偏区/分级处置"源文档不存在（blocker，夸大引用）；L02 目标"seek 后禁止立刻丢帧"无出处（blocker）；L13 核心知识无断言支撑、quiz 弱挂/空挂（blocker）；L06 目标漂移+§7.3 错位；L11 乱码四处+RenderPass 过度简化；L01 数字口径/推导缺失。
+- 诊断明确为 AI 线索，非人工评分；G1/G2/G3 状态未变。
+
+### P6.2 覆盖矩阵
+- 新增 `courses/video-rendering-journey/课程覆盖矩阵.md`：19 课 × 元数据/正文/Quiz/Claim/Lab；元数据 19/19、正文 5/19、Quiz 5/19、Lab 7/19、断言挂载 13/19。
+- 核对结论：pilot 5 课为有意分阶段（非遗漏）；pilot next 指针与路线矛盾（已修）；主课程 L12.next=L15 与 L15 先修矛盾（留 G2 拍板）；L02/L06/L11 两层目标漂移（留 P7）。
+- **第 3 项确定性验证**（一次性审计脚本，不入仓库）：先修存在性 19/19 + DFS 无循环；主课程 next 链行走实测 L15/L17/L18 先修未满足（G-D2 精确量化到 L17/L18）；pilot 路线 next 指针 + §10 正文桥 + lessonFile + quiz + lab 双向**全部一致 0 问题**；labs.json 7 实验 lesson 反向均有效。桥接检测限定 §10 段落，排除 §11 延伸链接误报。结论已写入覆盖矩阵 §2.1，G-D2 范围同步扩展至 L17/L18。
+
+### P6.3 Gold Standard L01 + 数据修复
+- 重写 `lessons/L01-为什么视频不是-RGB.md`（88→约 300 行）：精确数字开篇（22.4GB vs 112.5MB 两刀分解）、生理依据（V13）、4:2:0 记号与采样对照表、NV12 布局图、stride 公式+1080@128 算例+逐行错位推导+绿屏成因计算（V14）、glPixelStorei 代码、排查案例、实验四任务+full-range 边界、因果链回忆。checkpoint 两题原文保留。
+- `evidence/claim-ledger.json`：新增 V13/V14（open/low，待 G1 升级，note 说明提取来源）；V06 used_by 补 L13、E03 补 L11。
+- `evidence/source-registry.json`：新增 SRC-RN-AV-BASE（repo_doc），双向索引完整。
+- `quizzes/L01.json`：Q2 改挂 V14，答案补绿线/累积偏差依据。
+- 两层 course.json：L01 乱码目标修复；pilot next 对齐 L01→L02→L06→L11→L13→null（D11.2）。
+- 未动其余四篇样章内容（修复留 P7，D11.7）。
+
+### P6.4 质量规范提案 + G2 材料
+- 新增 `.workbuddy-ai/skills/research-to-learning/references/lesson-quality-standard.md`（十维度/六问/类比边界/数学三件套/引用与断言纪律/知识类型结构/诊断程序）；SKILL.md 登记阅读指引、Phase 5 审核动作、Helpers。**提案状态，待 G2 人工确认，AI 未宣布通过。**
+- 新增 `courses/video-rendering-journey/G2-审核材料-P6.md`：变更清单 + 6 个待拍板问题（行为语言）+ 语义审核 8 项清单 + 空白评分表。
+
+### 门禁（P6 结束实测）
+- `py -3 tools/build_site.py`：69 documents / 17 sections / 124 terms / 8 units / 19 lessons / 7 labs / 497 term cards / 2291 KB（新增 6 篇审计/诊断/矩阵/G2 文档计入）。
+- `py -3 tools/validate_site.py`：**11 checks passed, 0 warnings, 0 failures**，exit 0。
+- arc：5/5 OK（含重写后的 L01）。
+- review_gate：只读复跑正常，G1/G2/G3 仍待人工，未写任何分数。
+
+### 边界确认
+- 未 commit / push / 远程发布（D09 默认口径恢复，D11.9）；未动 archive / memory / vendor / index.html / 两份旧方案 / README。
+- 治理文档同步：DECISIONS.md 新增 D11；WORKFLOW_STATE.md 更新续跑点为 G2；IMPLEMENTATION_PLAN.md 新增 P6 勾选与 P7–P10 待办。
+- 已知风险：V13/V14 为 open 断言，G1 升级前教材以主文档锚点为权威；L02 blocker 内容在 P7 修复前仍在线（诊断与 G2 材料已显著标记）。
+
 ## 2026-11-18 · P5 收尾验收
 
 ### 三重确定性门禁（实测）

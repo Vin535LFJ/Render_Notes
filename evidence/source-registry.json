@@ -125,6 +125,17 @@
       ]
     },
     {
+      "id": "SRC-RN-AV-BASE",
+      "title": "Render_Notes 音视频基础理论（主知识文档）",
+      "url": "repo:01-基础理论/音视频基础理论.md",
+      "type": "repo_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V13",
+        "V14"
+      ]
+    },
+    {
       "id": "SRC-RN-VERIFICATION",
       "title": "Render_Notes 验真队列与术语表",
       "url": "repo:00-导航与索引/验真队列与术语表.md",

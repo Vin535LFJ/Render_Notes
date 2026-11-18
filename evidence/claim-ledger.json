@@ -148,7 +148,8 @@
         "03-图形与GPU工程/图形与GPU工程.md"
       ],
       "used_by_lessons": [
-        "L08"
+        "L08",
+        "L13"
       ]
     },
     {
@@ -294,6 +295,57 @@
       "conditions": [
         "前提为 4:2:0 采样"
       ],
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L01"
+      ]
+    },
+    {
+      "id": "V13",
+      "claim": "人眼对亮度细节的敏感度远高于色度（杆状细胞远多于锥状细胞），是 YUV 色度下采样的生理依据",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-AV-BASE",
+          "locator": "§2.1 YUV 设计原理（✅已验证段）",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [],
+      "note": "P6 由 AI 从主文档 ✅ 标记段落提取登记，按规则默认 open，待 G1 人工确认后升级。",
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L01"
+      ]
+    },
+    {
+      "id": "V14",
+      "claim": "Stride 是硬件对齐后的物理行宽；按逻辑宽度逐行读取会逐行错位，导致斜纹/绿线/绿屏",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-AV-BASE",
+          "locator": "§2.2 硬件内存对齐与 Stride 机制（公式/算例/故障表 ✅，对齐基数 ⚠️）",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "对齐基数因芯片平台而异（典型 64/128 字节），具体参数以 SoC 手册为准",
+        "行高也可能被对齐（16/32 行）"
+      ],
+      "note": "P6 由 AI 从主文档提取登记，按规则默认 open，待 G1 人工确认后升级。",
       "source_documents": [
         "01-基础理论/音视频基础理论.md"
       ],
@@ -695,7 +747,8 @@
         "03-图形与GPU工程/图形与GPU工程.md"
       ],
       "used_by_lessons": [
-        "L08"
+        "L08",
+        "L11"
       ]
     },
     {

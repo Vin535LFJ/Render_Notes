@@ -58,6 +58,24 @@
 - [x] B4 `tools/review_gate.py` 只读前置清单（G1/G2/G3 待人工）
 - [x] B5 学习反馈闭环：`feedback.json` + `report_feedback.py` + 离线前端 UI（localStorage + JSON 导出，用户授权偏离 D04，无远程）
 
+## P6 教材质量升级 ✅（Master Prompt V2.0，2026-11-18；G2 待人工）
+
+- [x] 第一步审计：`PROJECT_CURRENT_STATE.md` / `CURRENT_GAPS.md` / `NEXT_PHASE_PLAN.md`（远程 HEAD=本地=5359259 实测）
+- [x] P6.1 五篇样章深度诊断：`courses/video-rendering-journey/教材质量诊断.md`（十维度 + 源文档行号核对；2 处 blocker 引用/目标问题 + 1 处 blocker 断言链断裂）
+- [x] P6.2 课程覆盖矩阵：`courses/video-rendering-journey/课程覆盖矩阵.md`（19 课 × 元数据/正文/Quiz/Claim/Lab；next/先修/目标漂移核对）
+- [x] P6.3 Gold Standard：重写 `lessons/L01-为什么视频不是-RGB.md`；新断言 V13/V14（open 待 G1）+ SRC-RN-AV-BASE；quiz L01-Q2 改挂 V14；L01 乱码目标修复（两层）；pilot next 对齐路线；V06/E03 used_by 补漏
+- [x] P6.4 教材质量规范提案：`.workbuddy-ai/skills/research-to-learning/references/lesson-quality-standard.md` + SKILL.md 登记（待 G2 确认）
+- [x] G2 审核材料：`courses/video-rendering-journey/G2-审核材料-P6.md`（含 6 个待拍板问题 + 空白评分表）
+- [x] 门禁：build 68 docs / validate 11 checks 0 FAIL 0 WARN / arc 5/5 OK
+- [ ] **G2 人工审核**（最重要出口条件；未确认前不启动 P7 内容生产）
+
+## P7–P10（待 G2 后按 NEXT_PHASE_PLAN.md 执行）
+
+- [ ] P7 blocker 修复（L02 引用/目标、L13 断言链）→ 两层口径统一 → 按依赖逐篇深化（一次一篇，不批量生成 14 篇）
+- [ ] P8 Skill 执行合同 / 输入合同 / 增量资料处理 / 知识追踪
+- [ ] P9 轻量工作流状态机（JSON，断点恢复）+ 工具盘点 + 人工关卡材料化
+- [ ] P10 离线站体验增强 / VitePress 构建验证（需授权）/ 多领域课程复用
+
 ---
 
 ## 硬门槛（每阶段结束）

@@ -71,3 +71,18 @@
 4. 离线 `content.js` 继续收录 archive 与两份方案文档（影响最小）；在线站做策展剔除。
 5. README 数字不动（含用户未提交的 chat 链接）。
 6. VitePress 锁定最新稳定 1.6.x，禁用 alpha；实施时联网确认版本，安装失败则保留源码树并如实记录，不伪造构建成功。
+
+## D11 · P6 教材质量升级执行默认值（2026-11-18，Master Prompt V2.0）
+
+> 依据：根目录 `PROJECT_CURRENT_STATE.md` / `CURRENT_GAPS.md` / `NEXT_PHASE_PLAN.md`；G2 材料见 `courses/video-rendering-journey/G2-审核材料-P6.md`。非关键项直接采用并登记；需用户拍板项已单列 G2 材料 §4，不擅自处理。
+
+1. **Gold Standard 选 L01**：源素材推导最完整、路线首课、实验现成、断言基础好（诊断 §4 理由）。L13 为第二篇深化候选（先重建断言链）。
+2. **pilot next 指针对齐 curriculum 路线**（L01→L02→L06→L11→L13→null）：原指针继承自主课程、指向 pilot 外课时，与大纲和正文桥矛盾，属数据错误而非路线变更。主课程 L12.next=L15 与 L15 先修的矛盾**不擅自改**，留 G2 拍板（路线设计权属人）。
+3. **乱码修复范围**：L01 目标"Stride Why"两层 course.json 已修；L11"由谁 inserted"涉及 checkpoint/正文/quiz 四处联动（validate §11b 覆盖约束），留 P7 同步修复。
+4. **新断言纪律**：V13（生理依据）/V14（stride 机制）从主文档 ✅ 段提取，按 evidence-and-claims 硬规则默认 `open/low`，待 G1 人工升级；新增来源 SRC-RN-AV-BASE（repo_doc）。历史兼容性叙事不挂断言，作明确标注的背景叙述并列入候选清单。
+5. **ledger 挂载补漏**：V06 补 L13、E03 补 L11（正文实际引用）；P02 挂 L06 但正文未声明的矛盾留 P7 裁决，不静默删挂载。
+6. **教材质量规范为提案**：`references/lesson-quality-standard.md` 待 G2 人工确认后才算正式标准；AI 不宣布通过。十维度诊断结论仅为线索，不替代人工评分。
+7. **P6 内容修复边界**：只重写 L01；L02/L06/L11/L13 的 blocker/major 修复全部留 P7（G2 确认后），避免标准未确认前批量改内容。
+8. **README 不动**（D10.5 继续有效）：数字过时已登记 G-R1 决策提案，待授权。
+9. **不 commit/push**：D09 的一次性授权已用于 5359259，本阶段恢复默认口径。
+10. **本机门禁命令用 `py -3`**：`python` 首选解析到 cygwin stub 不可用（环境事实，Python 3.12.10 实测可用）。

@@ -12,7 +12,7 @@ Convert a pile of research material into a learning system organized by **how hu
 
 Use this skill when a request involves turning research into teaching material, designing a course or learning path, or restructuring an existing knowledge base that "has all the information but doesn't flow".
 
-Read `references/workflow-details.md` for the full five-role contracts, output schemas, and the "narrative arc" patterns. Read `references/evidence-and-claims.md` before adding claims or verification statuses; read `references/quiz-design.md` before writing assessments; read `references/practice-and-review.md` before designing labs/quizzes, running review gates, or touching the feedback loop.
+Read `references/workflow-details.md` for the full five-role contracts, output schemas, and the "narrative arc" patterns. Read `references/evidence-and-claims.md` before adding claims or verification statuses; read `references/quiz-design.md` before writing assessments; read `references/practice-and-review.md` before designing labs/quizzes, running review gates, or touching the feedback loop; read `references/lesson-quality-standard.md` before writing, rewriting, or diagnosing lesson quality (semantic standard; the arc script is only the structural floor).
 
 ## Core principle
 
@@ -60,7 +60,7 @@ Chapter titles should read like a story ("机器是如何学会思考的？"), n
 
 ### Phase 5 · Knowledge Reviewer
 
-Audit: factual support and citations, terminology consistency, chapter continuity, prerequisite ordering, and whether every practice is actually doable. Produce a revision list with severity (blocker / major / minor), apply fixes, then re-run the project's validation if one exists (for this repo: `python tools/validate_site.py`).
+Audit: factual support and citations, terminology consistency, chapter continuity, prerequisite ordering, and whether every practice is actually doable. Apply the ten-dimension semantic check and the source-cross-check procedure in `references/lesson-quality-standard.md` (structure gates alone cannot catch fabricated citations or weak claim links). Produce a revision list with severity (blocker / major / minor), apply fixes, then re-run the project's validation if one exists (for this repo: `python tools/validate_site.py`).
 
 ## Helpers
 
@@ -70,6 +70,7 @@ Audit: factual support and citations, terminology consistency, chapter continuit
 - `references/evidence-and-claims.md` — claim ledger schema, status mapping, and the "never auto-verify AI output" rule.
 - `references/quiz-design.md` — how to derive assessments from prerequisites, checkpoints and claim IDs.
 - `references/practice-and-review.md` — Practice Designer and Publisher/Feedback Analyst contracts, the G1/G2/G3 human-gate checklist, and the local feedback loop.
+- `references/lesson-quality-standard.md` — semantic lesson-quality standard (ten dimensions, narrative/analogy/math/citation/claim discipline, knowledge-type structures) and the reusable diagnosis procedure; proposal pending human G2 confirmation. Gold Standard reference: `courses/video-rendering-journey/lessons/L01-为什么视频不是-RGB.md`.
 - `scripts/check_chapter_arc.py` — deterministic check that a chapter file contains a hook, prerequisite, concepts, bridge, and practice section.
 
 ## Quality gates in Render_Notes

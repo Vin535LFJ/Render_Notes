@@ -4,7 +4,7 @@
 >
 > 计划：`.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` · 裁决：`DECISIONS.md`
 
-**最后更新**：2026-11-18（P5 + Part B 全部完成） · **当前阶段**：全部执行完毕（P0–P5 + B1–B5） · **续跑点**：无；仅剩人工 G1/G2/G3 评分与（需用户授权的）P4 docs:build。
+**最后更新**：2026-11-18（P6 教材质量升级完成，Master Prompt V2.0） · **当前阶段**：P0–P5 + B1–B5 + P6 完成 · **续跑点**：**G2 人工审核**（材料：`courses/video-rendering-journey/G2-审核材料-P6.md`）；G2 确认后按 `NEXT_PHASE_PLAN.md` 启动 P7。另有 G1/G3 待人工、（需授权的）P4 docs:build。
 
 ---
 
@@ -22,6 +22,7 @@
 | B3 | Skill 角色契约 | ✅ 完成 | 补 4b/5b 角色 + practice-and-review.md；未建顶层 skills/ |
 | B4 | review_gate.py | ✅ 完成 | 只读前置清单，G1/G2/G3 待人工；不写分数 |
 | B5 | 学习反馈闭环 | ✅ 完成 | feedback.json + report_feedback.py + 离线前端 UI（localStorage 队列 + JSON 导出）；端到端验证通过；D04 偏离已授权 |
+| P6 | 教材质量升级（Master Prompt V2.0） | ✅ 完成，待 G2 | 审计三件套 + 教材质量诊断（2+1 处 blocker）+ 课程覆盖矩阵 + Gold Standard L01 重写 + V13/V14 登记（open）+ 质量规范提案 + G2 材料；门禁 11 checks 0 FAIL / arc 5/5；D11 登记 |
 
 图例：⬜ 待办 · 🔄 进行中 · ✅ 完成 · ⛔ 阻塞
 
@@ -53,8 +54,9 @@
 
 ## 续跑指引
 
-1. 读 `DECISIONS.md` 确认裁决未变。
-2. P0–P5 已全部完成（P4 源码树 + D10.6 已知限制）；当前按新批准计划 `C:\Users\Giant\.workbuddy-ai\plans\radiant-cascade-newton-e440_pIP.md` 执行 Part B：B1+B2（validate 第 11 节）→ B3（Skill 角色契约）→ B4（review_gate.py）→ B5（学习反馈闭环，含用户授权的前端 UI）。
-3. 每阶段结束跑 `python tools/build_site.py && python tools/validate_site.py`，要求 0 FAIL / 0 WARN；P2 起额外跑 `python .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md`。
-4. B5 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）。
-5. 不 commit / push / 远程发布，除非用户明确授权；不碰 `.workbuddy-ai/memory/**`；执行结果写入 `CHANGELOG.md` 与本文件。
+1. 读 `DECISIONS.md` 确认裁决未变（D01–D11；D11 为 P6 执行默认值）。
+2. P0–P5 + B1–B5 + P6 已完成。**当前阻塞点是 G2 人工审核**：读 `courses/video-rendering-journey/G2-审核材料-P6.md`，裁决其中 6 个问题（L02 目标取舍、主课程 L12→L15 路线矛盾、质量规范认可、Gold Standard 深度、README 数字授权、docs:build 授权）。G2 未确认前不启动 P7 内容生产。
+3. G2 确认后按 `NEXT_PHASE_PLAN.md` 执行 P7：先修 L02 blocker（引用失实/目标无出处）与 L13 断言链，再按覆盖矩阵 §4 顺序逐篇深化，一次一篇。
+4. 每阶段结束跑门禁（本机用 `py -3`，`python` 解析到 cygwin stub 不可用）：`py -3 tools/build_site.py` → `py -3 tools/validate_site.py`（0 FAIL/0 WARN）→ `py -3 .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md`；涉及审核时 `py -3 tools/review_gate.py`（只读）。
+5. 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）。
+6. 不 commit / push / 远程发布，除非用户明确授权（D09 一次性授权已用完）；不碰 `.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、两份旧方案文档；执行结果写入 `CHANGELOG.md` 与本文件。

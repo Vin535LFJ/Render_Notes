@@ -31,7 +31,7 @@
       "objectives": [
         "解释亮度/色度分离与 4:2:0 节省空间的数学关系",
         "区分 NV12 与 NV21 的内存布局",
-        "说明 Stride Why 错了会花屏"
+        "说明忽略 stride 为什么会花屏"
       ],
       "prerequisites": [
         "L00"
@@ -94,7 +94,7 @@
         "画出 B 帧场景中 DTS 与 PTS 的顺序差异",
         "drift 进入强纠偏区时应该怎么做？"
       ],
-      "next": "L03",
+      "next": "L06",
       "lessonFile": "L02-时间戳与同步.md",
       "lab": "pts-dts-timeline"
     },
@@ -136,7 +136,7 @@
         "零拷贝到底省掉了哪一段 CPU 搬移？",
         "OES 纹理进入 Effect Pass 前必须经过什么转换？"
       ],
-      "next": "L07",
+      "next": "L11",
       "lessonFile": "L06-纹理桥与零拷贝.md",
       "lab": "frame-pipeline"
     },
@@ -171,7 +171,7 @@
         "单 Pass 场景适合上 RenderGraph 吗？为什么？",
         "barrier 是由谁 inserted？人工还是图编译？"
       ],
-      "next": "L12",
+      "next": "L13",
       "lessonFile": "L11-RenderGraph与资源生命周期.md",
       "lab": "rendergraph-dag"
     },
@@ -214,7 +214,7 @@
         "没有投影空间会发生什么？",
         "OpenGL 与 Vulkan 的 NDC 差异在哪里？"
       ],
-      "next": "L14",
+      "next": null,
       "lessonFile": "L13-坐标变换与MVP.md",
       "lab": "transform-mvp"
     }
