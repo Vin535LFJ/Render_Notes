@@ -41,9 +41,13 @@
 - review_gate：只读复跑正常，G1/G2/G3 仍待人工，未写任何分数。
 
 ### 边界确认
-- 未 commit / push / 远程发布（D09 默认口径恢复，D11.9）；未动 archive / memory / vendor / index.html / 两份旧方案 / README。
+- 未 push / 远程发布（D09 远程需另行授权）；未动 archive / memory / vendor / index.html / 两份旧方案 / README。
 - 治理文档同步：DECISIONS.md 新增 D11；WORKFLOW_STATE.md 更新续跑点为 G2；IMPLEMENTATION_PLAN.md 新增 P6 勾选与 P7–P10 待办。
 - 已知风险：V13/V14 为 open 断言，G1 升级前教材以主文档锚点为权威；L02 blocker 内容在 P7 修复前仍在线（诊断与 G2 材料已显著标记）。
+
+### git 提交（2026-11-18 用户授权"先提交代码，保存修改"）
+- P6 全部产物本地 commit **`3ce7b2f`**（19 文件，+978 / −44）：审计三件套 + 诊断 + 覆盖矩阵 + Gold Standard L01 + V13/V14/SRC-RN-AV-BASE + quiz/next/乱码/used_by 修复 + 质量规范提案 + G2 材料 + 治理文档 + content.js。
+- **仅本地 commit，未 push**（D09/D11.9：远程需另行授权）。提交后工作区干净；本笔记录哈希的文档更新随后单独提交。
 
 ## 2026-11-18 · P5 收尾验收
 
