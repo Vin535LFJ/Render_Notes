@@ -1,0 +1,766 @@
+{
+  "version": "2026-11-17",
+  "title": "Render_Notes 教材模式",
+  "subtitle": "按认知顺序重排现有文档，不改写知识资产",
+  "units": [
+    {
+      "id": "U0",
+      "title": "入学准备",
+      "subtitle": "先知道整套知识怎么连"
+    },
+    {
+      "id": "U1",
+      "title": "基础认知",
+      "subtitle": "先建立底层词汇，再谈链路"
+    },
+    {
+      "id": "U2",
+      "title": "一帧视频的旅程",
+      "subtitle": "从文件到 GPU 纹理"
+    },
+    {
+      "id": "U3",
+      "title": "GPU 与渲染管线",
+      "subtitle": "理解一帧怎么画出来"
+    },
+    {
+      "id": "U4",
+      "title": "工程化与系统",
+      "subtitle": "从能画到可预测、可复用"
+    },
+    {
+      "id": "U5",
+      "title": "3D 与图像算法",
+      "subtitle": "从画对到画好"
+    },
+    {
+      "id": "U6",
+      "title": "输出与表达",
+      "subtitle": "项目复盘和面试讲述"
+    },
+    {
+      "id": "U7",
+      "title": "程序化图形学",
+      "subtitle": "用数学描述形状，而不是导入模型"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "L00",
+      "unit": "U0",
+      "title": "先看知识地图",
+      "short": "不急着读细节，先知道八层结构怎么连。",
+      "question": "我现在该读哪一篇？这个概念属于哪一层？",
+      "minutes": 15,
+      "objectives": [
+        "说出 L0–L7 八层分别解决什么问题",
+        "理解“基础概念 → 数据流 → 管线 → 架构 → 输出”的依赖方向",
+        "能在地图中找到自己当前最薄弱的一层"
+      ],
+      "prerequisites": [],
+      "reading": [
+        {
+          "doc": "00-导航与索引/知识架构总览.md",
+          "anchor": "1-知识地图",
+          "label": "知识架构总览 §1 知识地图"
+        },
+        {
+          "doc": "00-导航与索引/知识架构总览.md",
+          "anchor": "2-各章节详解",
+          "label": "知识架构总览 §2 各章节详解"
+        }
+      ],
+      "terms": [
+        "RenderGraph",
+        "零拷贝",
+        "TBDR",
+        "Vulkan"
+      ],
+      "checkpoint": [
+        "为什么 L2 解码链路必须在 L3 GPU 管线之前学？",
+        "RenderGraph 属于哪一层？它解决的是性能还是复杂度问题？"
+      ],
+      "next": "L01"
+    },
+    {
+      "id": "L01",
+      "unit": "U1",
+      "title": "为什么视频不是 RGB",
+      "short": "从 YUV、采样格式到 Stride，建立像素级直觉。",
+      "question": "为什么视频码流几乎不用 RGB？YUV420 到底省在哪里？",
+      "minutes": 45,
+      "objectives": [
+        "解释亮度/色度分离与 4:2:0 节省空间的数学关系",
+        "区分 NV12 与 NV21 的内存布局",
+        "说明 Stride Why 错了会花屏"
+      ],
+      "prerequisites": [
+        "L00"
+      ],
+      "reading": [
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "1-媒体处理三层数据模型",
+          "label": "音视频基础理论 §1 三层数据模型"
+        },
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "2-像素格式与色彩空间",
+          "label": "音视频基础理论 §2 像素格式"
+        }
+      ],
+      "terms": [
+        "YUV 4:2:0",
+        "NV12 / NV21",
+        "Stride",
+        "色彩空间"
+      ],
+      "checkpoint": [
+        "YUV420 相对 RGBA8888 节省多少空间？依据是什么？",
+        "忽略 stride 会出现什么现象？为什么？"
+      ],
+      "next": "L02"
+    },
+    {
+      "id": "L02",
+      "unit": "U1",
+      "title": "时间戳与同步",
+      "short": "先理解“什么时候显示”，再理解播放器状态机。",
+      "question": "为什么有 B 帧时 DTS ≠ PTS？音画同步为什么是时钟问题？",
+      "minutes": 40,
+      "objectives": [
+        "区分 DTS 的解码顺序与 PTS 的显示顺序",
+        "说明为什么音频常被选为主时钟",
+        "描述 seek 后为什么要禁止立刻丢帧"
+      ],
+      "prerequisites": [
+        "L01"
+      ],
+      "reading": [
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "4-时间戳与同步机制",
+          "label": "音视频基础理论 §4 时间戳与同步"
+        }
+      ],
+      "terms": [
+        "PTS",
+        "DTS",
+        "主时钟",
+        "AV Sync"
+      ],
+      "checkpoint": [
+        "画出 B 帧场景中 DTS 与 PTS 的顺序差异",
+        "drift 进入强纠偏区时应该怎么做？"
+      ],
+      "next": "L03"
+    },
+    {
+      "id": "L03",
+      "unit": "U1",
+      "title": "色彩与显示范围",
+      "short": "把 limited range、gamma、HDR 放到同一张图上理解。",
+      "question": "为什么视频直接当 full range 显示会发灰？HDR 为什么不只是“更亮”？",
+      "minutes": 35,
+      "objectives": [
+        "区分 BT.709 色彩空间与 limited range 数值约定",
+        "解释 gamma 与传递函数的角色",
+        "说出 PQ 与 HLG 的适用场景"
+      ],
+      "prerequisites": [
+        "L01"
+      ],
+      "reading": [
+        {
+          "doc": "03-图形与GPU工程/色彩管理与采样滤波.md",
+          "label": "色彩管理与采样滤波"
+        }
+      ],
+      "terms": [
+        "BT.709 limited range",
+        "Gamma",
+        "传递函数",
+        "HDR",
+        "PQ",
+        "HLG"
+      ],
+      "checkpoint": [
+        "limited range 当 full range 用会出现什么？",
+        "色彩空间和传递函数分别回答什么问题？"
+      ],
+      "next": "L04"
+    },
+    {
+      "id": "L04",
+      "unit": "U2",
+      "title": "从文件到码流",
+      "short": "Demux 与 Decode 的职责边界。",
+      "question": "MP4 和 H.264 是什么关系？MediaCodec 为什么不负责 demux？",
+      "minutes": 35,
+      "objectives": [
+        "说清容器、码流、编解码器三者的关系",
+        "区分 MediaExtractor 与 MediaCodec 的职责",
+        "解释 NALU/SPS/PPS 的作用"
+      ],
+      "prerequisites": [
+        "L01",
+        "L02"
+      ],
+      "reading": [
+        {
+          "doc": "02-解码与播放链路/解码与播放链路.md",
+          "anchor": "1-音视频核心管线与职责边界-已验证",
+          "label": "解码与播放链路 §1 职责边界"
+        },
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "3-编码与封装容器",
+          "label": "音视频基础理论 §3 编码与封装"
+        }
+      ],
+      "terms": [
+        "Demux",
+        "Codec",
+        "MediaCodec",
+        "NALU"
+      ],
+      "checkpoint": [
+        "为什么 MediaCodec 不能替代 demux？",
+        "Annex B 与 AVCC 的主要差异是什么？"
+      ],
+      "next": "L05"
+    },
+    {
+      "id": "L05",
+      "unit": "U2",
+      "title": "硬解与 ownership",
+      "short": "谁持有 buffer、谁控制 codec、谁负责释放。",
+      "question": "为什么硬解路径里线程 ownership 比 API 调用更重要？",
+      "minutes": 40,
+      "objectives": [
+        "描述 MediaCodec 输入/输出 buffer 的流转",
+        "说明硬解为什么通常更省电但不是绝对更快",
+        "列出回退软解的触发条件"
+      ],
+      "prerequisites": [
+        "L04"
+      ],
+      "reading": [
+        {
+          "doc": "02-解码与播放链路/解码与播放链路.md",
+          "anchor": "2-软解与硬解深度对比-已验证",
+          "label": "解码与播放链路 §2 软解与硬解"
+        }
+      ],
+      "terms": [
+        "MediaCodec",
+        "VPU",
+        "Codec",
+        "零拷贝"
+      ],
+      "checkpoint": [
+        "硬解一定比软解快吗？给出反例或约束条件",
+        "RenderThread 为什么不应直接 flush codec？"
+      ],
+      "next": "L06"
+    },
+    {
+      "id": "L06",
+      "unit": "U2",
+      "title": "纹理桥与零拷贝",
+      "short": "SurfaceTexture、OES、FBO：解码帧怎么进入 GPU。",
+      "question": "为什么说视频纹理化是“近零拷贝”？OES 为什么不能直接进普通多 Pass？",
+      "minutes": 50,
+      "objectives": [
+        "解释 updateTexImage 与变换矩阵的作用",
+        "说明 OES Input Pass 为什么必要",
+        "描述预览与导出如何复用同一 RenderGraph"
+      ],
+      "prerequisites": [
+        "L05"
+      ],
+      "reading": [
+        {
+          "doc": "02-解码与播放链路/解码与播放链路.md",
+          "anchor": "7-视频纹理化与-oes-外部纹理",
+          "label": "解码与播放链路 §7 视频纹理化"
+        },
+        {
+          "doc": "03-图形与GPU工程/GPU与渲染引擎基础与链路.md",
+          "anchor": "3-一帧的端到端链路",
+          "label": "GPU 基础 §3 端到端链路"
+        }
+      ],
+      "terms": [
+        "OES",
+        "SurfaceTexture",
+        "FBO",
+        "零拷贝",
+        "Premultiplied Alpha"
+      ],
+      "checkpoint": [
+        "零拷贝到底省掉了哪一段 CPU 搬移？",
+        "OES 纹理进入 Effect Pass 前必须经过什么转换？"
+      ],
+      "next": "L07"
+    },
+    {
+      "id": "L07",
+      "unit": "U3",
+      "title": "GPU 为什么快",
+      "short": "SIMD、warp、带宽、占用率：先理解硬件再谈优化。",
+      "question": "TOPS 很高为什么帧率仍上不去？",
+      "minutes": 45,
+      "objectives": [
+        "用 warp/wavefront 解释分支发散代价",
+        "用带宽与算术强度判断瓶颈",
+        "说明高占用率为什么不是目标本身"
+      ],
+      "prerequisites": [
+        "L06"
+      ],
+      "reading": [
+        {
+          "doc": "03-图形与GPU工程/GPU与渲染引擎基础与链路.md",
+          "anchor": "1-gpu-硬件基础",
+          "label": "GPU 基础 §1 硬件基础"
+        }
+      ],
+      "terms": [
+        "SIMD",
+        "warp",
+        "occupancy",
+        "带宽",
+        "算术强度",
+        "延迟隐藏"
+      ],
+      "checkpoint": [
+        "1080p RGBA8 一次全屏写约多少 MB？60 FPS 下是多少带宽？",
+        "分支发散为什么浪费车道？"
+      ],
+      "next": "L08"
+    },
+    {
+      "id": "L08",
+      "unit": "U3",
+      "title": "一帧怎么画出来",
+      "short": "顶点、光栅、片元、FBO、DrawCall 与系统合成。",
+      "question": "一个 draw call 从应用到屏幕，中间经过哪些层？",
+      "minutes": 50,
+      "objectives": [
+        "说出图形管线主要阶段及其职责",
+        "解释 RenderTarget/FBO 与多 Pass 的关系",
+        "说明 CPU 提交与 GPU 执行之间为什么需要队列与同步"
+      ],
+      "prerequisites": [
+        "L07"
+      ],
+      "reading": [
+        {
+          "doc": "03-图形与GPU工程/GPU与渲染引擎基础与链路.md",
+          "anchor": "2-渲染引擎的核心组成",
+          "label": "GPU 基础 §2 引擎组成"
+        },
+        {
+          "doc": "03-图形与GPU工程/图形与GPU工程.md",
+          "label": "图形与 GPU 工程"
+        }
+      ],
+      "terms": [
+        "顶点",
+        "片元",
+        "光栅化",
+        "FBO",
+        "DrawCall",
+        "Swapchain"
+      ],
+      "checkpoint": [
+        "片元和像素有什么区别？",
+        "为什么 eglSwapBuffers 不等于“已经显示”？"
+      ],
+      "next": "L09"
+    },
+    {
+      "id": "L09",
+      "unit": "U3",
+      "title": "移动端瓶颈与 TBDR",
+      "short": "Overdraw、Early-Z、MSAA、带宽——移动 GPU 的约束。",
+      "question": "为什么桌面端优化经验不能直接照搬到手机和车机？",
+      "minutes": 40,
+      "objectives": [
+        "解释 TBDR 与 IMR 的核心差异",
+        "说明 Overdraw 与 Early-Z 的关系",
+        "判断 MSAA 的成本主要落在哪里"
+      ],
+      "prerequisites": [
+        "L08"
+      ],
+      "reading": [
+        {
+          "doc": "03-图形与GPU工程/光栅化深度与移动GPU架构.md",
+          "label": "光栅化、深度与移动 GPU 架构"
+        }
+      ],
+      "terms": [
+        "TBDR",
+        "Overdraw",
+        "Early-Z",
+        "MSAA",
+        "带宽"
+      ],
+      "checkpoint": [
+        "TBDR 为什么能降低外部带宽？",
+        "MSAA 是渲染更高分辨率再缩小吗？"
+      ],
+      "next": "L10"
+    },
+    {
+      "id": "L10",
+      "unit": "U4",
+      "title": "显式 API 与同步",
+      "short": "从全局状态机到 Vulkan：把依赖说清楚。",
+      "question": "fence、semaphore、barrier 分别在等谁？能否互换？",
+      "minutes": 50,
+      "objectives": [
+        "对比 OpenGL 状态机与 Vulkan 显式模型",
+        "区分 CPU-GPU 同步与 GPU-GPU 同步",
+        "说明 barrier 缺少时会发生什么"
+      ],
+      "prerequisites": [
+        "L09"
+      ],
+      "reading": [
+        {
+          "doc": "04-跨平台与高性能架构/显式API与同步原语.md",
+          "label": "显式 API 与同步原语"
+        },
+        {
+          "doc": "06-面试知识库/车载渲染引擎/02-Vulkan与显式API对照.md",
+          "label": "Vulkan 与显式 API 对照"
+        }
+      ],
+      "terms": [
+        "Vulkan",
+        "Barrier",
+        "Fence",
+        "Semaphore",
+        "PSO",
+        "Descriptor"
+      ],
+      "checkpoint": [
+        "CPU 等待 GPU 应该用 fence 还是 semaphore？",
+        "PSO 为什么不是单纯的 shader 程序？"
+      ],
+      "next": "L11"
+    },
+    {
+      "id": "L11",
+      "unit": "U4",
+      "title": "RenderGraph 与资源生命周期",
+      "short": "把 Pass 依赖、显存复用与自动同步变成图。",
+      "question": "RenderGraph 到底是优化性能，还是管理复杂度？",
+      "minutes": 45,
+      "objectives": [
+        "用 DAG 描述 Pass 与资源读写依赖",
+        "说明 aliasing 如何降低峰值显存",
+        "判断什么场景不该引入 RenderGraph"
+      ],
+      "prerequisites": [
+        "L10"
+      ],
+      "reading": [
+        {
+          "doc": "04-跨平台与高性能架构/跨平台与高性能架构.md",
+          "label": "跨平台与高性能架构 §2 RenderGraph"
+        }
+      ],
+      "terms": [
+        "RenderGraph",
+        "Pass",
+        "Memory Aliasing",
+        "CommandBuffer"
+      ],
+      "checkpoint": [
+        "单 Pass 场景适合上 RenderGraph 吗？为什么？",
+        "barrier 是由谁 inserted？人工还是图编译？"
+      ],
+      "next": "L12"
+    },
+    {
+      "id": "L12",
+      "unit": "U4",
+      "title": "系统合成与显示",
+      "short": "SurfaceFlinger、HWC、VSync：应用 buffer 怎么变成屏幕上的光。",
+      "question": "应用 present 之后，画面为什么仍可能延迟或撕裂？",
+      "minutes": 35,
+      "objectives": [
+        "说明系统合成器与 HWC/DPU 的职责",
+        "解释双缓冲/三缓冲与延迟的取舍",
+        "判断什么图层适合硬件 overlay"
+      ],
+      "prerequisites": [
+        "L08"
+      ],
+      "reading": [
+        {
+          "doc": "03-图形与GPU工程/GPU与渲染引擎基础与链路.md",
+          "anchor": "3-一帧的端到端链路",
+          "label": "GPU 基础 §3 端到端链路"
+        },
+        {
+          "doc": "02-解码与播放链路/解码与播放链路.md",
+          "anchor": "6-android-渲染组件体系",
+          "label": "解码与播放链路 §6 Android 组件"
+        }
+      ],
+      "terms": [
+        "SurfaceFlinger",
+        "DPU / HWC",
+        "VSync",
+        "Swapchain",
+        "双缓冲 / 三缓冲"
+      ],
+      "checkpoint": [
+        "Video/Camera/HUD 为什么优先走硬件平面？",
+        "三缓冲一定比双缓冲好吗？"
+      ],
+      "next": "L15"
+    },
+    {
+      "id": "L13",
+      "unit": "U5",
+      "title": "坐标变换与 MVP",
+      "short": "先问“为什么要有坐标变换”，再进入矩阵。",
+      "question": "为什么模型空间、观察空间、投影空间缺一不可？",
+      "minutes": 55,
+      "objectives": [
+        "解释每个坐标空间存在的理由",
+        "推导 MVP 的组合顺序",
+        "处理 NDC/Y-flip 的跨 API 差异"
+      ],
+      "prerequisites": [
+        "L08"
+      ],
+      "reading": [
+        {
+          "doc": "07-3D渲染与算法实现/3D变换与坐标空间.md",
+          "anchor": "1-坐标空间链",
+          "label": "3D 变换 §1 坐标空间链"
+        },
+        {
+          "doc": "07-3D渲染与算法实现/3D变换与坐标空间.md",
+          "anchor": "4-投影矩阵",
+          "label": "3D 变换 §4 投影矩阵"
+        }
+      ],
+      "terms": [
+        "顶点",
+        "视锥剔除",
+        "FOV",
+        "模型空间",
+        "投影空间",
+        "NDC"
+      ],
+      "checkpoint": [
+        "没有投影空间会发生什么？",
+        "OpenGL 与 Vulkan 的 NDC 差异在哪里？"
+      ],
+      "next": "L14"
+    },
+    {
+      "id": "L14",
+      "unit": "U5",
+      "title": "光照、材质与图像算法",
+      "short": "从 Phong 到 PBR，再到降噪、LUT 与批处理。",
+      "question": "画面发灰、阴影漏光、边缘锯齿分别属于哪一层的问题？",
+      "minutes": 50,
+      "objectives": [
+        "说清 BRDF 与 PBR 的关系",
+        "区分光照、材质、后处理各自解决的问题",
+        "了解降噪/超分/批处理落在管线的什么位置"
+      ],
+      "prerequisites": [
+        "L13"
+      ],
+      "reading": [
+        {
+          "doc": "07-3D渲染与算法实现/光照材质与阴影.md",
+          "label": "光照材质与阴影"
+        },
+        {
+          "doc": "07-3D渲染与算法实现/GPU图像处理算法.md",
+          "label": "GPU 图像处理算法"
+        },
+        {
+          "doc": "07-3D渲染与算法实现/批处理与GPU驱动管线.md",
+          "label": "批处理与 GPU 驱动管线"
+        }
+      ],
+      "terms": [
+        "PBR",
+        "BRDF",
+        "采样",
+        "mipmap",
+        "MSAA"
+      ],
+      "checkpoint": [
+        "PBR 是一组 shader 还是一套模型约束？",
+        "mipmap 是解决锯齿还是解决采样稳定性？"
+      ],
+      "next": "L15"
+    },
+    {
+      "id": "L15",
+      "unit": "U6",
+      "title": "性能评测与项目复盘",
+      "short": "把“更快了”变成可验证的工程结论。",
+      "question": "没有设备矩阵和测试条件，性能数字能写进结论吗？",
+      "minutes": 45,
+      "objectives": [
+        "设计包含设备/样本/条件的评测方案",
+        "区分 P50/P99 帧时间与平均值",
+        "用 VMAF/PSNR/SSIM 支撑画质结论"
+      ],
+      "prerequisites": [
+        "L12",
+        "L14"
+      ],
+      "reading": [
+        {
+          "doc": "05-项目实战/项目实战指南.md",
+          "label": "项目实战指南"
+        }
+      ],
+      "terms": [
+        "VMAF",
+        "带宽",
+        "DrawCall",
+        "Frame in flight"
+      ],
+      "checkpoint": [
+        "“CPU 占用下降 98%”缺什么证据？",
+        "为什么趋势比绝对数字更可靠？"
+      ],
+      "next": "L16"
+    },
+    {
+      "id": "L16",
+      "unit": "U6",
+      "title": "面试表达与查漏补缺",
+      "short": "把知识讲成 60 秒答案和 3 分钟项目故事。",
+      "question": "同一个知识点，怎样讲出结论、原理、约束和反例？",
+      "minutes": 40,
+      "objectives": [
+        "用四段式回答技术问题",
+        "口述一个完整项目重构故事",
+        "根据缺口登记表安排后续补强"
+      ],
+      "prerequisites": [
+        "L15"
+      ],
+      "reading": [
+        {
+          "doc": "06-面试知识库/车载渲染引擎/00-面试速问速答清单.md",
+          "label": "车载渲染速问速答清单"
+        },
+        {
+          "doc": "00-导航与索引/知识缺口登记表.md",
+          "label": "知识缺口登记表"
+        }
+      ],
+      "terms": [
+        "RenderGraph",
+        "零拷贝",
+        "Vulkan SC",
+        "安全岛"
+      ],
+      "checkpoint": [
+        "能否在 60 秒内讲清一次渲染优化？",
+        "结论里有没有写清楚边界条件和反例？"
+      ],
+      "next": "L17"
+    },
+    {
+      "id": "L17",
+      "unit": "U7",
+      "title": "程序化几何 · 从轮廓到网格",
+      "short": "给一条二维轮廓，用数学旋出一张网格。",
+      "question": "不导入模型文件，怎样用一条公式生成一张网格？",
+      "minutes": 45,
+      "objectives": [
+        "写出旋转曲面的参数方程并解释每个参数",
+        "从轮廓推导 M×N 顶点与两组索引",
+        "说明细分如何同时影响平滑度与成本"
+      ],
+      "prerequisites": [
+        "L13"
+      ],
+      "reading": [
+        {
+          "doc": "07-3D渲染与算法实现/程序化几何与旋转曲面.md",
+          "label": "程序化几何与旋转曲面"
+        }
+      ],
+      "terms": [
+        "程序化几何",
+        "参数曲面",
+        "旋转曲面",
+        "顶点缓冲",
+        "索引缓冲",
+        "细分",
+        "网格"
+      ],
+      "checkpoint": [
+        "径向分段 N 翻倍，三角形数如何变化？",
+        "旋转曲面的参数方程里 r(t) 与 y(t) 各控制什么？",
+        "程序化几何适合做角色模型吗？为什么？"
+      ],
+      "next": "L18"
+    },
+    {
+      "id": "L18",
+      "unit": "U7",
+      "title": "PBR 光照与材质参数",
+      "short": "拖动 albedo / metalness / roughness，看 D、G、F 如何塑造高光。",
+      "question": "为什么调三个参数就能得到从磨砂塑料到抛光金属的不同质感？",
+      "minutes": 50,
+      "objectives": [
+        "说出 Cook-Torrance 中 D/G/F 各自的作用",
+        "解释 metalness 如何改变漫反射与镜面能量分配",
+        "从粗糙度推导 GGX 高光 lobe 的宽窄变化"
+      ],
+      "prerequisites": [
+        "L13",
+        "L14"
+      ],
+      "reading": [
+        {
+          "doc": "07-3D渲染与算法实现/光照材质与阴影.md",
+          "anchor": "31-cook-torrance-分解",
+          "label": "光照材质与阴影 §3.1 Cook-Torrance"
+        },
+        {
+          "doc": "07-3D渲染与算法实现/光照材质与阴影.md",
+          "anchor": "36-参数如何改变画面交互实验",
+          "label": "光照材质与阴影 §3.6 交互实验"
+        }
+      ],
+      "terms": [
+        "PBR",
+        "BRDF",
+        "albedo",
+        "metalness",
+        "roughness",
+        "Fresnel",
+        "NDF",
+        "IBL"
+      ],
+      "checkpoint": [
+        "metalness=1 时漫反射为什么消失？",
+        "roughness 增大，GGX 高光 lobe 如何变化？",
+        "Fresnel 在掠射角为什么让反射增强？"
+      ],
+      "next": null
+    }
+  ]
+}

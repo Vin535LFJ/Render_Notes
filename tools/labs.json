@@ -1,0 +1,212 @@
+{
+  "version": "2026-11-17",
+  "labs": [
+    {
+      "id": "transform-mvp",
+      "type": "mvp",
+      "title": "坐标变换与 MVP 实验",
+      "subtitle": "调参数、看矩阵、看顶点如何一步步走到屏幕",
+      "lesson": "L13",
+      "docs": [
+        "07-3D渲染与算法实现/3D变换与坐标空间.md"
+      ],
+      "formula": "v_{\\text{clip}} = P \\cdot V \\cdot M \\cdot v_{\\text{model}}",
+      "stages": [
+        {
+          "name": "模型空间",
+          "desc": "顶点相对物体自身原点的位置"
+        },
+        {
+          "name": "世界空间",
+          "desc": "通过 M 平移/旋转/缩放后的位置"
+        },
+        {
+          "name": "观察空间",
+          "desc": "通过 V 变换到相机坐标系"
+        },
+        {
+          "name": "裁剪空间",
+          "desc": "通过 P 得到 clip coordinates"
+        },
+        {
+          "name": "NDC",
+          "desc": "除以 w 后落到 [-1, 1]"
+        },
+        {
+          "name": "屏幕",
+          "desc": "视口映射到像素坐标"
+        }
+      ],
+      "terms": [
+        "MVP",
+        "模型空间",
+        "观察空间",
+        "投影空间",
+        "NDC",
+        "FOV",
+        "视锥剔除",
+        "顶点"
+      ],
+      "tasks": [
+        "把 FOV 从 50° 调到 100°，观察远处边线的透视拉伸。",
+        "切换透视/正交投影，观察深度感如何变化。",
+        "旋转模型 Y 轴，观察 M 矩阵和屏幕投影同时变化。",
+        "放大模型或拉近相机，观察顶点越过视锥后被裁切。"
+      ],
+      "code": "// GLSL ES 3.x：顶点着色器中的 MVP\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nin vec3 aPosition;\n\nvoid main() {\n  vec4 modelPos = uModel * vec4(aPosition, 1.0);\n  vec4 viewPos = uView * modelPos;\n  vec4 clipPos = uProjection * viewPos;\n  gl_Position = clipPos;\n  // NDC = clipPos.xyz / clipPos.w 由 GPU 自动完成\n}",
+      "note": "这个实验不依赖 Three.js 或 WebGL：投影矩阵和线框绘制都在本地 Canvas 2D 中完成，便于看清每一步数学含义。",
+      "selfTest": [
+        {
+          "q": "为什么透视除法（除以 w）不能放在顶点着色器里手动做？",
+          "a": "顶点着色器输出的是裁剪空间坐标，w 承载着到相机的深度信息。透视除法由 GPU 固定管线在齐次裁剪之后统一完成，手动除会破坏插值（透视正确插值依赖 w）并让视锥裁切失去依据。"
+        },
+        {
+          "q": "把 FOV 从 50° 调到 100°，远处边线为什么会更向画面边缘拉伸？",
+          "a": "FOV 增大意味着投影矩阵的 x/y 缩放系数 1/tan(FOV/2) 变小，同样的观察空间偏移映射到 NDC 的比例被压缩；近处物体被放大、远处透视收敛更强，于是边线在画面边缘显得被拉长。"
+        },
+        {
+          "q": "正交投影下，平移相机距离 Z 会让立方体看起来变大变小吗？",
+          "a": "不会。正交投影矩阵不含除以深度的项，屏幕尺寸只由物体自身尺寸与投影缩放决定；改变相机距离只改变它是否被近/远裁剪面切掉，不改变投影大小。"
+        }
+      ]
+    },
+    {
+      "id": "procedural-lathe",
+      "type": "lathe",
+      "title": "程序化几何 · 旋转曲面生成",
+      "subtitle": "给一条轮廓线，用数学旋出一张网格：看顶点、索引和线框同时生成",
+      "lesson": "L17",
+      "docs": [
+        "07-3D渲染与算法实现/程序化几何与旋转曲面.md",
+        "00-导航与索引/Render_Notes_2.0_双线规划.md"
+      ],
+      "formula": "P(\\theta, t) = \\big(r(t)\\cos\\theta,\\;\\; y(t),\\;\\; r(t)\\sin\\theta\\big)",
+      "stages": [
+        {
+          "name": "轮廓控制点",
+          "desc": "二维 (r, y) 控制点定义母线"
+        },
+        {
+          "name": "沿轮廓采样",
+          "desc": "在控制点之间插值，得到 M 个轮廓点"
+        },
+        {
+          "name": "绕轴旋转",
+          "desc": "每个轮廓点绕 Y 轴复制 N 份"
+        },
+        {
+          "name": "顶点缓冲",
+          "desc": "M × N 个顶点写入 vertex buffer"
+        },
+        {
+          "name": "索引缓冲",
+          "desc": "相邻环之间连成两组三角形"
+        },
+        {
+          "name": "线框提交",
+          "desc": "一次 draw call 画出三角网格"
+        }
+      ],
+      "terms": [
+        "程序化几何",
+        "参数曲面",
+        "旋转曲面",
+        "顶点缓冲",
+        "索引缓冲",
+        "细分",
+        "网格"
+      ],
+      "tasks": [
+        "切换预设，观察同一个生成函数如何产出圆柱、花瓶与球冠。",
+        "把径向分段从 8 调到 48，看顶点数与线框平滑度如何变化。",
+        "增加轮廓采样，比较棱角与平滑的差别，理解细分的代价。",
+        "改变半径或旋转角度，确认形状来自公式而不是模型文件。"
+      ],
+      "code": "// 由轮廓生成旋转曲面：参数 -> 顶点 + 索引\nfunction lathe(profile, radialSeg, profileSeg) {\n  const ring = sampleProfile(profile, profileSeg); // [[r, y], ...]\n  const M = ring.length, N = radialSeg;\n  const positions = [], indices = [];\n\n  for (let i = 0; i < M; i++) {\n    const [r, y] = ring[i];\n    for (let j = 0; j < N; j++) {\n      const theta = (j / N) * Math.PI * 2;\n      positions.push(r * Math.cos(theta), y, r * Math.sin(theta));\n    }\n  }\n  for (let i = 0; i < M - 1; i++) {\n    for (let j = 0; j < N; j++) {\n      const a = i * N + j, b = i * N + (j + 1) % N;\n      const c = (i + 1) * N + j, d = (i + 1) * N + (j + 1) % N;\n      indices.push(a, c, b, b, c, d);\n    }\n  }\n  return { positions, indices };\n}\n\n// 顶点着色器只需要接收位置并套用 MVP：\n// gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);",
+      "note": "这是任务二「数学驱动的几何生成」阶段的第一个可运行实验。只用 Canvas 2D 画线与投影，没有任何外部 3D 库：先看清「点怎么生成、面怎么连」，再进入 WebGL / Vulkan 的缓冲上传。",
+      "selfTest": [
+        {
+          "q": "把径向分段 N 从 8 提到 48，三角形数大约变成几倍？",
+          "a": "约 6 倍。三角形数 = 2×(M−1)×N，与 N 成正比，所以 48/8 = 6 倍。这就是平滑度的几何成本。"
+        },
+        {
+          "q": "轮廓上一点 (r, y) 绕 Y 轴旋转后，坐标公式是什么？",
+          "a": "P(θ,t) = (r(t)·cosθ, y(t), r(t)·sinθ)。r 决定这一圈半径，y 决定高度，θ 是绕轴角度。"
+        },
+        {
+          "q": "为什么同一个生成函数换一条轮廓就能产出圆柱和花瓶？",
+          "a": "因为形状完全由 r(t) 与 y(t) 两个函数决定：r(t) 为常数得到圆柱，r(t) 随高度变化得到花瓶。轮廓是数据，生成函数是通用的。"
+        }
+      ]
+    },
+    {
+      "id": "pbr-lighting",
+      "type": "pbr",
+      "title": "PBR 光照与材质参数",
+      "subtitle": "拖动光源与材质参数，看 D/G/F 如何一步步把高光画出来",
+      "lesson": "L18",
+      "docs": [
+        "07-3D渲染与算法实现/光照材质与阴影.md"
+      ],
+      "formula": "f_r = \\frac{D(h)\\,G(l,v)\\,F(v,h)}{4\\,(N\\cdot L)(N\\cdot V)}",
+      "stages": [
+        {
+          "name": "反照率与金属度",
+          "desc": "albedo / metallic 决定漫反射占比与 F0"
+        },
+        {
+          "name": "漫反射 vs 镜面",
+          "desc": "(1−m)·albedo/π 与镜面项的能量分配"
+        },
+        {
+          "name": "NDF · D",
+          "desc": "GGX 决定有多少微面朝向半角向量 H"
+        },
+        {
+          "name": "Fresnel · F",
+          "desc": "Schlick 让掠射角反射增强"
+        },
+        {
+          "name": "几何项 · G",
+          "desc": "Smith-Schlick-GGX 描述微面自遮蔽"
+        },
+        {
+          "name": "色调映射",
+          "desc": "把线性 HDR 压到可显示的 LDR"
+        }
+      ],
+      "terms": [
+        "PBR",
+        "BRDF",
+        "albedo",
+        "metalness",
+        "roughness",
+        "Fresnel",
+        "NDF",
+        "IBL"
+      ],
+      "tasks": [
+        "把 roughness 从 0.1 调到 0.9，观察高光从锐利小点变宽变暗。",
+        "把 metalness 从 0 拉到 1，观察漫反射消失、反射带上 albedo 的颜色。",
+        "改变光源方向到掠射角，观察 Fresnel 让边缘反射增强。",
+        "固定其他参数，只改 albedo，确认非金属固有色来自漫反射、金属来自 F0。"
+      ],
+      "selfTest": [
+        {
+          "q": "metalness=1 时漫反射项为什么变成 0？",
+          "a": "PBR 的漫反射系数是 (1−metallic)·albedo/π。金属的自由电子吸收折射进内部的光，没有次表面散射返回，所以 metallic=1 时漫反射为 0，颜色全部体现在镜面反射的 F0。"
+        },
+        {
+          "q": "roughness 增大时 GGX 高光 lobe 如何变化？",
+          "a": "α=roughness² 增大，D 分布变宽变矮：高光覆盖更大面积但峰值更低，总能量大致守恒。所以磨砂表面看起来高光弥散而非锐利。"
+        },
+        {
+          "q": "把光源移到掠射角，反射为什么更强？",
+          "a": "Schlick 菲涅尔近似 F=F0+(1−F0)(1−N·V)^5：N·V 变小时括号变大、F 趋近 1，掠射角反射比例显著增强。"
+        }
+      ],
+      "code": "// Cook-Torrance 镜面 BRDF（教学近似，逐像素在 CPU 上算）\nfloat D_GGX(float NoH, float rough) {\n  float a = rough * rough;\n  float a2 = a * a;\n  float d = NoH * NoH * (a2 - 1.0) + 1.0;\n  return a2 / (PI * d * d);\n}\nfloat F_Schlick(float VoH, vec3 F0) {\n  return F0 + (1.0 - F0) * pow(1.0 - VoH, 5.0);\n}\nfloat G_Smith(float NoL, float NoV, float rough) {\n  float k = pow(rough + 1.0, 2.0) / 8.0;\n  float gl = NoL / (NoL * (1.0 - k) + k);\n  float gv = NoV / (NoV * (1.0 - k) + k);\n  return gl * gv;\n}\nvec3 spec = D * G * F / (4.0 * NoL * NoV);\nvec3 kd = (1.0 - metallic);\nvec3 diffuse = kd * albedo / PI;\n// 出射 = (diffuse + spec) * radiance * NoL；再走色调映射",
+      "note": "教学近似 / 归一化示意：用 Canvas 2D 在粗网格上逐像素计算 Cook-Torrance 的 D/G/F，帮助建立「参数 → 数学 → 画面」的直觉。不是物理精确的离线渲染器，也不代表行业标准实现。"
+    }
+  ]
+}

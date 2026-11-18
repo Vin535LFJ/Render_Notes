@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Render_Notes 知识库阅读版：音视频处理、图形渲染与 GPU 工程的系统化笔记。" />
+  <title>Render_Notes · 知识库阅读版</title>
+  <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">RN</div>
+        <div class="brand-text">
+          <strong>Render_Notes</strong>
+          <span>音视频 · 渲染 · GPU 工程</span>
+        </div>
+      </div>
+
+      <button class="search-trigger" id="searchTrigger" type="button">
+        <span class="search-glyph">⌕</span>
+        <span>搜索文档</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+
+      <button class="glossary-trigger" id="glossaryTrigger" type="button">
+        <span class="glossary-glyph">◈</span>
+        <span>术语速查</span>
+        <kbd>G</kbd>
+      </button>
+
+      <button class="course-trigger" id="courseTrigger" type="button">
+        <span class="course-glyph">▤</span>
+        <span>教材模式</span>
+        <kbd>C</kbd>
+      </button>
+
+      <button class="lab-trigger" id="labTrigger" type="button">
+        <span class="lab-glyph">⌁</span>
+        <span>图形实验室</span>
+        <kbd>L</kbd>
+      </button>
+
+      <button class="graph-trigger" id="graphTrigger" type="button">
+        <span class="graph-glyph">◇</span>
+        <span>知识依赖图</span>
+        <kbd>M</kbd>
+      </button>
+
+      <button class="tech-trigger" id="techTrigger" type="button">
+        <span class="tech-glyph">▦</span>
+        <span>技术索引</span>
+        <kbd>T</kbd>
+      </button>
+
+      <nav class="sidebar-nav" id="sidebarNav" aria-label="文档导航"></nav>
+
+      <div class="sidebar-footer">
+        <span id="buildStamp">本地阅读版</span>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+
+    <div class="main-column">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="打开导航">☰</button>
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="top-actions">
+          <button class="icon-btn" id="themeToggle" type="button" aria-label="切换主题" title="切换明暗主题">◐</button>
+          <a class="repo-link" id="repoLink" href="https://github.com/Vin535LFJ/Render_Notes" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </header>
+
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+
+      <main class="content-area" id="contentArea">
+        <article class="content" id="content"></article>
+      </main>
+    </div>
+
+    <aside class="toc-panel" id="tocPanel" aria-label="本页目录">
+      <div class="toc-title">本页目录</div>
+      <nav class="toc-nav" id="tocNav"></nav>
+      <div class="toc-footer" id="tocFooter"></div>
+    </aside>
+  </div>
+
+  <div class="search-backdrop" id="searchBackdrop" hidden></div>
+  <div class="term-tooltip" id="termTooltip" role="tooltip" hidden></div>
+
+  <div class="diagram-lightbox" id="diagramLightbox" role="dialog" aria-modal="true" aria-label="图示放大" hidden>
+    <div class="lightbox-toolbar">
+      <span class="lightbox-caption" id="lightboxCaption">图示</span>
+      <div class="lightbox-tools">
+        <button type="button" id="lightboxZoomOut" title="缩小">−</button>
+        <span class="lightbox-scale" id="lightboxScale">100%</span>
+        <button type="button" id="lightboxZoomIn" title="放大">＋</button>
+        <button type="button" id="lightboxFit" title="适应窗口">适应</button>
+        <button type="button" id="lightboxReset" title="原始大小">1:1</button>
+        <button type="button" id="lightboxClose" title="关闭 (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="lightbox-stage" id="lightboxStage">
+      <div class="lightbox-canvas" id="lightboxCanvas"></div>
+    </div>
+    <div class="lightbox-hint">滚轮缩放 · 拖拽平移 · Esc 关闭</div>
+  </div>
+
+  <div class="search-dialog" id="searchDialog" role="dialog" aria-modal="true" aria-label="搜索文档" hidden>
+    <div class="search-head">
+      <span class="search-glyph">⌕</span>
+      <input id="searchInput" type="search" autocomplete="off" placeholder="搜索标题、知识点或术语…" />
+      <kbd>ESC</kbd>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-foot"><span>↑ ↓ 选择</span><span>Enter 打开</span><span id="searchCount"></span></div>
+  </div>
+
+  <script src="vendor/marked.min.js"></script>
+  <script src="vendor/highlight.min.js"></script>
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/auto-render.min.js"></script>
+  <script src="vendor/mermaid.min.js"></script>
+  <script src="content.js"></script>
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Internal agent work journals — not part of the knowledge base deliverable.
+.workbuddy-ai/memory/
+
+# Local tooling artifacts.
+.playwright-cli/
+*.pyc
+__pycache__/
+.DS_Store

@@ -1,0 +1,76 @@
+{
+  "version": "2026-11-18",
+  "nodes": [
+    { "id": "L0", "label": "L0 导航与索引", "kind": "layer", "layer": 0,
+      "route": "#/doc/00-导航与索引/知识架构总览.md", "summary": "先知道知识怎么连、概念去哪查" },
+    { "id": "L1", "label": "L1 基础理论", "kind": "layer", "layer": 1,
+      "route": "#/doc/01-基础理论/音视频基础理论.md", "summary": "YUV / PTS-DTS / Stride" },
+    { "id": "L2", "label": "L2 解码与播放", "kind": "layer", "layer": 2,
+      "route": "#/doc/02-解码与播放链路/解码与播放链路.md", "summary": "一帧视频如何走到纹理" },
+    { "id": "L3", "label": "L3 图形与 GPU", "kind": "layer", "layer": 3,
+      "route": "#/doc/03-图形与GPU工程/图形与GPU工程.md", "summary": "管线 / FBO / 带宽 / 色彩" },
+    { "id": "L4", "label": "L4 跨平台与架构", "kind": "layer", "layer": 4,
+      "route": "#/doc/04-跨平台与高性能架构/跨平台与高性能架构.md", "summary": "Vulkan / RenderGraph / 同步" },
+    { "id": "L5", "label": "L5 项目实战", "kind": "layer", "layer": 5,
+      "route": "#/doc/05-项目实战/项目实战指南.md", "summary": "落地 / 验收 / 避坑" },
+    { "id": "L6", "label": "L6 面试知识库", "kind": "layer", "layer": 6,
+      "route": "#/doc/06-面试知识库/面试知识库.md", "summary": "把知识讲成结构化答案" },
+    { "id": "L7", "label": "L7 3D 与算法", "kind": "layer", "layer": 7,
+      "route": "#/doc/07-3D渲染与算法实现/README.md", "summary": "变换 / 光照 / 程序几何 / 批处理" },
+
+    { "id": "L13", "label": "L13 坐标变换与 MVP", "kind": "lesson", "layer": 7,
+      "route": "#/course/L13", "summary": "为什么要有坐标变换" },
+    { "id": "L14", "label": "L14 光照材质", "kind": "lesson", "layer": 7,
+      "route": "#/course/L14", "summary": "光照、材质与图像算法" },
+    { "id": "L17", "label": "L17 程序化几何", "kind": "lesson", "layer": 7,
+      "route": "#/course/L17", "summary": "从轮廓到网格" },
+    { "id": "L18", "label": "L18 PBR 参数", "kind": "lesson", "layer": 7,
+      "route": "#/course/L18", "summary": "D/G/F 与材质参数" },
+
+    { "id": "lab-mvp", "label": "实验 · MVP", "kind": "lab", "layer": 7,
+      "route": "#/lab/transform-mvp", "summary": "调参数看矩阵与顶点" },
+    { "id": "lab-lathe", "label": "实验 · 旋转曲面", "kind": "lab", "layer": 7,
+      "route": "#/lab/procedural-lathe", "summary": "用数学生成网格" },
+    { "id": "lab-pbr", "label": "实验 · PBR 光照", "kind": "lab", "layer": 7,
+      "route": "#/lab/pbr-lighting", "summary": "拖参数看高光" },
+
+    { "id": "doc-geo", "label": "程序化几何文档", "kind": "doc", "layer": 7,
+      "route": "#/doc/07-3D渲染与算法实现/程序化几何与旋转曲面.md", "summary": "参数方程与顶点索引推导" },
+    { "id": "doc-light", "label": "光照材质与阴影", "kind": "doc", "layer": 7,
+      "route": "#/doc/07-3D渲染与算法实现/光照材质与阴影.md", "summary": "BRDF / IBL / 阴影" },
+    { "id": "glossary", "label": "术语速查", "kind": "index", "layer": 0,
+      "route": "#/glossary", "summary": "统一术语库" },
+    { "id": "tech", "label": "技术索引", "kind": "index", "layer": 0,
+      "route": "#/tech", "summary": "按 API / 算法 / 主题查阅" }
+  ],
+  "edges": [
+    { "from": "L0", "to": "L1", "kind": "prereq", "label": "先建词汇" },
+    { "from": "L1", "to": "L2", "kind": "prereq", "label": "数据正确性" },
+    { "from": "L2", "to": "L3", "kind": "prereq", "label": "视频纹理化" },
+    { "from": "L3", "to": "L4", "kind": "prereq", "label": "工程化组织" },
+    { "from": "L4", "to": "L5", "kind": "prereq", "label": "落地" },
+    { "from": "L4", "to": "L6", "kind": "prereq", "label": "表达" },
+    { "from": "L3", "to": "L7", "kind": "prereq", "label": "算法实现" },
+    { "from": "L7", "to": "L5", "kind": "apply", "label": "项目应用" },
+
+    { "from": "L13", "to": "lab-mvp", "kind": "experiment", "label": "实验承载" },
+    { "from": "L17", "to": "doc-geo", "kind": "reading", "label": "阅读" },
+    { "from": "doc-geo", "to": "lab-lathe", "kind": "experiment", "label": "实验承载" },
+    { "from": "L14", "to": "doc-light", "kind": "reading", "label": "阅读" },
+    { "from": "doc-light", "to": "L18", "kind": "next", "label": "进阶" },
+    { "from": "L18", "to": "lab-pbr", "kind": "experiment", "label": "实验承载" },
+    { "from": "L13", "to": "L17", "kind": "prereq", "label": "MVP 基础" },
+    { "from": "L14", "to": "L18", "kind": "prereq", "label": "光照基础" },
+
+    { "from": "L0", "to": "glossary", "kind": "index", "label": "术语" },
+    { "from": "L0", "to": "tech", "kind": "index", "label": "技术索引" }
+  ],
+  "views": [
+    { "id": "core", "title": "主干知识依赖",
+      "desc": "从导航层到工程/表达/算法，理解每层为什么存在。",
+      "nodeIds": ["L0","L1","L2","L3","L4","L5","L6","L7","glossary","tech"] },
+    { "id": "graphics", "title": "图形学交叉路径",
+      "desc": "线性代数 → 坐标变换 → 程序化几何；光照材质 → PBR 参数；每条都配交互实验。",
+      "nodeIds": ["L13","lab-mvp","L17","doc-geo","lab-lathe","L14","doc-light","L18","lab-pbr"] }
+  ]
+}

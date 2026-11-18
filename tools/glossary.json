@@ -1,0 +1,1403 @@
+{
+  "version": "2026-11-17",
+  "groups": [
+    {
+      "id": "math-geometry",
+      "label": "数学与坐标变换",
+      "terms": [
+        {
+          "name": "模型空间",
+          "aliases": [
+            "局部空间",
+            "Model Space",
+            "Object Space",
+            "Local Space"
+          ],
+          "short": "顶点在物体自身坐标系里的位置，不关心物体被放在场景哪里。",
+          "detail": "建模工具导出的顶点坐标通常就在模型空间，例如一个以原点为中心的立方体。模型矩阵 M 把它缩放、旋转、平移到世界空间。",
+          "why": "同一个 Mesh 能被放到多个位置、复用多份实例，靠的就是把“物体自身形状”和“在场景中的摆放”分开。",
+          "confusion": "模型空间不是世界空间。平移整个物体改变的是 M，而不是顶点缓冲里存的坐标。"
+        },
+        {
+          "name": "世界空间",
+          "aliases": [
+            "World Space",
+            "场景空间"
+          ],
+          "short": "所有物体共享的场景坐标系，描述物体彼此之间的位置关系。",
+          "detail": "世界空间通常由场景根节点定义，光照、碰撞、相机位置都在这个空间里表达。模型矩阵 M 的输出就是世界坐标。",
+          "why": "只有统一到同一坐标系，才能计算物体间遮挡、光源方向和相机相对位置。",
+          "confusion": "世界空间不等于屏幕空间；相机看到的内容还要继续经过 V 和 P 两步变换。"
+        },
+        {
+          "name": "观察空间",
+          "aliases": [
+            "相机空间",
+            "View Space",
+            "Camera Space"
+          ],
+          "short": "以相机为原点的坐标系，用来回答“物体相对相机在哪”。",
+          "detail": "视图矩阵 V 相当于世界变换的逆：把相机放回原点并让视线对准固定轴，OpenGL 惯例是朝向 -Z。视锥剔除、深度精度和 LOD 常在这里判定。",
+          "why": "把相机因素收敛到 V，光照和投影就能用统一的相机坐标表达，着色器不必关心相机怎么摆。",
+          "confusion": "观察空间里的 z 通常为负（OpenGL）；它也不是裁剪空间，别把“相机看到”和“投影压扁”混成一步。"
+        },
+        {
+          "name": "投影空间",
+          "aliases": [
+            "裁剪空间",
+            "Projection Space",
+            "Clip Space"
+          ],
+          "short": "乘上投影矩阵后的齐次坐标空间，用来表达透视感与视锥范围。",
+          "detail": "投影矩阵 P 把观察空间的视锥（近远平面 + FOV + 宽高比）压成一个立方体。此时 w 不再恒为 1，透视投影下 w = -z_view。",
+          "why": "只有到这一步，GPU 才能用 w 做透视除法，并对 x/y/z 统一执行 [-w, w] 的视锥裁剪。",
+          "confusion": "裁剪空间不是 NDC。NDC 要等除以 w 之后才得到；“裁剪空间”这个别名强调的是此处的裁剪判定。"
+        },
+        {
+          "name": "NDC",
+          "aliases": [
+            "归一化设备坐标",
+            "Normalized Device Coordinates"
+          ],
+          "short": "透视除法后落在 [-1, 1] 的标准立方体坐标，与窗口尺寸无关。",
+          "detail": "clip.xyz / clip.w 得到 NDC。OpenGL 的 z ∈ [-1, 1]，Vulkan / D3D 的 z ∈ [0, 1]；y 轴方向也会因 API 与视口设置而不同。",
+          "why": "它把“投影结果”与“最终视口”解耦：同一份 NDC 可以映射到不同分辨率、不同 API 的屏幕坐标。",
+          "confusion": "NDC 不是像素坐标。乘上视口宽高并处理 y 方向之后才是屏幕像素。"
+        },
+        {
+          "name": "MVP",
+          "aliases": [
+            "MVP 矩阵",
+            "Model View Projection",
+            "模型视图投影矩阵"
+          ],
+          "short": "M、V、P 三个矩阵合成的变换链，把模型顶点直接送到裁剪空间。",
+          "detail": "列向量写法下 v_clip = P · V · M · v_model。工程上常把 PVM 预先相乘成一个 uniform，减少每个顶点的矩阵乘法次数。",
+          "why": "它是顶点着色器里最常见的一行代码，也是理解“为什么物体会落在屏幕某个位置”的最短路径。",
+          "confusion": "矩阵乘法顺序不能交换：先缩放再旋转与先旋转再缩放结果不同；列向量写法要从右往左读。"
+        }
+      ]
+    },
+    {
+      "id": "gpu-hardware",
+      "label": "GPU 硬件与性能",
+      "terms": [
+        {
+          "name": "SIMD",
+          "aliases": [
+            "单指令多数据"
+          ],
+          "short": "一条指令同时处理多个数据车道，是 GPU 吞吐能力的硬件基础。",
+          "detail": "GPU 不是靠单个核心跑得快，而是把大量相似计算排成车道并行执行。向量化良好时，一次指令可以覆盖多个像素或顶点。",
+          "why": "理解 SIMD 才能明白为什么 shader 里分支发散代价高：同一组车道如果走不同分支，硬件需要串行执行各个分支路径。",
+          "confusion": "SIMD 描述硬件执行方式；SIMT 描述编程模型。两者相关但不是同一个词。"
+        },
+        {
+          "name": "SIMT",
+          "aliases": [
+            "单指令多线程"
+          ],
+          "short": "用单条指令调度一组线程，典型代表是 NVIDIA 的 warp 模型。",
+          "detail": "程序员写的是“每个线程做什么”，硬件仍按 warp/wavefront 成组调度。组内线程执行同一条指令，但各自处理不同数据。",
+          "why": "它解释了为什么 shader 中 if/else 依赖线程数据时会导致分支发散，以及为什么访存合并非常重要。",
+          "confusion": "SIMT 是 NVIDIA 常用术语；AMD 体系更常说 wavefront。本质都是“成组调度”。"
+        },
+        {
+          "name": "warp",
+          "aliases": [
+            "wavefront",
+            "线程束"
+          ],
+          "short": "GPU 调度和执行的最小线程组，NVIDIA 常见 32 lane，AMD 常见 64 lane。",
+          "detail": "一个 warp 内的 lane 同步执行同一条指令。寄存器压力、分支发散、访存合并、占用率都以 warp 为分析单位。",
+          "why": "性能分析时不能只看“线程数”，要看 warp 是否满、是否发散、是否因为等待访存而切换。",
+          "confusion": "warp 是硬件调度单位，不是软件线程；一个 workgroup / thread block 通常包含多个 warp。"
+        },
+        {
+          "name": "occupancy",
+          "aliases": [
+            "占用率",
+            "活跃 warp 比例"
+          ],
+          "short": "实际活跃 warp 数占理论最大 warp 数的比例。",
+          "detail": "占用率受每线程寄存器数、shared memory / tile memory 占用、线程块大小限制。GPU 靠切换 warp 隐藏延迟，占用率太低时延迟藏不住。",
+          "why": "它是 shader 性能调优的常见指标，但不是越高越好；如果瓶颈是带宽，高占用率只会更快把带宽打满。",
+          "confusion": "高占用率不等于高帧率。算术强度低、带宽受限、同步等待都会让高占用率失去意义。"
+        },
+        {
+          "name": "延迟隐藏",
+          "aliases": [
+            "latency hiding"
+          ],
+          "short": "用大量可切换的线程组，在部分线程等待访存时让其他线程继续工作。",
+          "detail": "显存和纹理采样延迟很高，GPU 不会像 CPU 那样主要靠大缓存消灭延迟，而是靠“ swap 到另一组 warp ”保持执行单元忙碌。",
+          "why": "这解释了为什么 GPU 需要大量线程和寄存器，也解释了为什么寄存器用太多会降低占用率。",
+          "confusion": "延迟隐藏不是让单次访存变快，而是让等待时间被其他工作覆盖。"
+        },
+        {
+          "name": "带宽",
+          "aliases": [
+            "memory bandwidth",
+            "显存带宽"
+          ],
+          "short": "单位时间内可以搬运的数据量，常见单位是 GB/s。",
+          "detail": "渲染中的带宽来自渲染目标读写、纹理采样、顶点读取、MSAA resolve 等。1080p RGBA8 一帧全屏写约 7.9 MB，60 FPS 就是约 475 MB/s。",
+          "why": "移动端和车机 GPU 常常先被带宽卡住，而不是被算力卡住。减少 Pass、压缩纹理、降低分辨率通常比堆 TOPS 更有效。",
+          "confusion": "带宽是“搬运能力”，算力是“计算能力”；简单 blend 通常带宽受限，复杂 PBR 更可能算力受限。"
+        },
+        {
+          "name": "算术强度",
+          "aliases": [
+            "arithmetic intensity"
+          ],
+          "short": "运算量与访存量之比，用来判断程序更容易被算力还是带宽限制。",
+          "detail": "算术强度高，说明每读一份数据做的计算多，较不容易被带宽卡住；算术强度低，则优化重点通常是减少读写。",
+          "why": "它是 Roofline 模型的核心概念，可帮助判断该优化 shader 还是优化纹理/FBO 访问。",
+          "confusion": "算术强度不是固定硬件参数，而是“算法 + 数据规模 + 实现”的结果。"
+        },
+        {
+          "name": "固定功能单元",
+          "aliases": [
+            "fixed-function"
+          ],
+          "short": "硬件写死、只能通过状态寄存器配置的图形处理单元。",
+          "detail": "典型包括光栅化器、Early-Z、ROP/混合单元、纹理采样器 TMU、视频编解码 VPU、显示合成 DPU。它们不做通用编程，但能效极高。",
+          "why": "车载和移动场景强调把合适的工作交给固定功能单元，以降低功耗并提高确定性。",
+          "confusion": "“固定功能”不等于“不可配置”；例如混合模式和深度比较可以配置，但执行逻辑是硬件固定的。"
+        },
+        {
+          "name": "可编程着色器",
+          "aliases": [
+            "shader",
+            "可编程阶段"
+          ],
+          "short": "由开发者编写、在 GPU 上执行的小程序，用于顶点、片元、计算等阶段。",
+          "detail": "GLSL/HLSL/WGSL 等语言描述的 shader 会被编译为 GPU 指令。顶点 shader 处理几何，片元 shader 决定像素颜色，compute shader 做通用并行计算。",
+          "why": "shader 变体、寄存器占用和分支发散都直接影响帧时间，不能只把 shader 当作“颜色函数”。",
+          "confusion": "shader 不是 CPU 程序；它的执行模型是大规模并行，写串行思维的算法通常很慢。"
+        },
+        {
+          "name": "TMU",
+          "aliases": [
+            "纹理映射单元",
+            "Texture Mapping Unit"
+          ],
+          "short": "负责纹理采样、过滤和 mipmap 选择的固定功能单元。",
+          "detail": "TMU 从纹理中按 UV 取值，并进行双线性/三线性过滤、各向异性过滤等。纹理格式和采样器状态会明显影响其效率。",
+          "why": "纹理带宽和缓存命中常常是片元阶段瓶颈，理解 TMU 有助于判断是该换压缩纹理还是改采样参数。",
+          "confusion": "TMU 负责“取纹素”，片元 shader 负责“用纹素算颜色”；两者不是一回事。"
+        },
+        {
+          "name": "ROP",
+          "aliases": [
+            "Render Output Unit",
+            "光栅输出单元"
+          ],
+          "short": "负责深度/模板测试、Alpha 混合和最终写回渲染目标的硬件单元。",
+          "detail": "ROP 位于管线末端，决定一个片元是否写入、如何与已有颜色混合。MSAA resolve 也与这里密切相关。",
+          "why": "过度绘制和高分辨率会放大 ROP 压力；移动 GPU 上 blend 与 store action 的成本尤其明显。",
+          "confusion": "ROP 不负责计算像素颜色，颜色主要来自片元着色器；ROP 负责“怎么把结果写进去”。"
+        },
+        {
+          "name": "Overdraw",
+          "aliases": [
+            "过度绘制"
+          ],
+          "short": "同一像素被多个片段反复覆盖渲染。",
+          "detail": "例如半透明 UI、多层粒子、未做 Early-Z 的不透明物体都会产生 overdraw。它浪费片元着色、纹理带宽和 ROP 写回。",
+          "why": "移动端 GPU 通常先被填充率和带宽限制，减少 overdraw 往往比减少顶点数更划算。",
+          "confusion": "Overdraw 不等于 DrawCall 多；一个 DrawCall 也可能覆盖整屏，几千个小三角形也可能几乎不overdraw。"
+        },
+        {
+          "name": "DRAM",
+          "aliases": [
+            "动态随机存取存储器",
+            "系统内存颗粒"
+          ],
+          "short": "动态随机存取存储器，系统内存与多数显存的物理介质。",
+          "detail": "DRAM 是存储介质的类别名：PC 系统内存是 DRAM，独显的 GDDR6/GDDR7、移动端的 LPDDR 也都是 DRAM 家族。它回答『数据住在哪里』，不是通路也不是搬运机制。",
+          "why": "区分 DRAM（介质）/ DMA（机制）/ PCIe（总线）是理解数据通路的第一步，三者常被混为一谈。",
+          "confusion": "DRAM 不等于『内存条』这个外形；显存也是 DRAM，只是做了带宽/位宽取舍。"
+        },
+        {
+          "name": "DMA",
+          "aliases": [
+            "直接内存访问",
+            "Direct Memory Access"
+          ],
+          "short": "硬件绕过 CPU 直接读写内存的传输机制。",
+          "detail": "DMA 由 DMA 控制器或设备（GPU/VPU/存储控制器）发起，CPU 只配置源/目的/长度，随后字节流由硬件自己搬，CPU 不必逐字节参与。移动端常见的 dma-buf / Gralloc 共享是其近亲形态。",
+          "why": "它是『内存→GPU 谁在搬』这个问题的答案；零拷贝的本质就是让 DMA/共享缓冲替掉 CPU 拷贝。",
+          "confusion": "DMA 是机制不是线路；它跑在 PCIe、AXI 等总线上，别和 PCIe 并列比较快慢。"
+        },
+        {
+          "name": "PCIe",
+          "aliases": [
+            "PCI Express",
+            "PCI-E"
+          ],
+          "short": "PC 平台上连接 CPU 与独立显卡的物理总线标准。",
+          "detail": "PCIe 以 lane（通道）为单位提供点对点串行链路，独显通过它挂载到 CPU 的根复合体。纹理上传、命令提交、显存读回都经过它。移动 SoC 的 CPU/GPU 共享内存，不存在 PCIe。",
+          "why": "它是 PC 独显『内存→显存』的物理通路；谈数据搬运前先说清平台有没有 PCIe。",
+          "confusion": "PCIe 是总线（路），DMA 是搬运机制（车）；手机/车机 SoC 没有 PCIe 不等于没有数据通路。"
+        },
+        {
+          "name": "显存",
+          "aliases": [
+            "VRAM",
+            "视频内存"
+          ],
+          "short": "GPU 专用的高速存储，PC 独显上是独立 DRAM 芯片，移动 SoC 上是从共享 DRAM 划出的区域。",
+          "detail": "独显显存（GDDR/HBM）通过 PCIe 与系统内存分隔，需显式拷贝；移动 SoC 无独立显存，CPU/GPU 共享同一块 LPDDR，靠 dma-buf 共享物理页实现近零拷贝。",
+          "why": "它决定了『上传纹理是否要拷贝』：独显要跨 PCIe 拷，移动 SoC 可共享。",
+          "confusion": "『显存』不一定是独立芯片；集成显卡/移动 GPU 的显存其实是共享系统内存。"
+        },
+        {
+          "name": "帧缓冲",
+          "aliases": [
+            "Framebuffer",
+            "帧缓存"
+          ],
+          "short": "存放即将显示的一整帧像素的内存区域。",
+          "detail": "GPU 管线的最终渲染目标，通常驻留在显存（独显）或共享 DRAM（移动 SoC）中。显示控制器（DPU/HWC/Overlay）按 vsync 从帧缓冲读取并送到屏幕；双缓冲/三缓冲用多个帧缓冲轮换以减少撕裂。",
+          "why": "它是『画面最终去了哪里』的终点，也是合成与显示的起点；理解它才能串起『管线→屏幕』最后一段。",
+          "confusion": "帧缓冲是内存中的像素缓冲，不是屏幕本身；屏幕只是把它显示出来的设备。"
+        }
+      ]
+    },
+    {
+      "id": "pipeline-resources",
+      "label": "渲染管线与资源",
+      "terms": [
+        {
+          "name": "顶点",
+          "aliases": [
+            "vertex",
+            "顶点着色器输入"
+          ],
+          "short": "几何表面的控制点，携带位置、法线、UV 等属性。",
+          "detail": "顶点经过顶点着色器变换到裁剪空间，再由图元装配形成三角形。顶点数量通常远小于片元数量。",
+          "why": "顶点阶段适合做变换和蒙皮；把本该逐像素计算的工作放到顶点阶段会产生插值误差。",
+          "confusion": "顶点不是像素；一个三角形只有 3 个顶点，却可能覆盖几十万个像素。"
+        },
+        {
+          "name": "片元",
+          "aliases": [
+            "fragment",
+            "候选像素"
+          ],
+          "short": "光栅化三角形后生成的、尚未最终写入帧缓冲的候选像素。",
+          "detail": "每个片元携带插值后的属性，进入片元着色器计算颜色，之后还要经过深度测试、混合等步骤才可能成为最终像素。",
+          "why": "片元数量决定填充率压力；分辨率、overdraw、MSAA 都会成倍放大片元工作。",
+          "confusion": "片元不等于最终屏幕像素：它可能被 Early-Z 或深度测试丢弃，也可能被混合覆盖。"
+        },
+        {
+          "name": "光栅化",
+          "aliases": [
+            "rasterization"
+          ],
+          "short": "把三角形转换成一组片元，并插值出顶点属性的固定功能阶段。",
+          "detail": "光栅化决定哪些像素被三角形覆盖，生成片元坐标和插值权重。它位于顶点处理后、片元着色前。",
+          "why": "它解释了为什么三角形数量、屏幕覆盖面积和采样数会直接影响片元工作量。",
+          "confusion": "光栅化不计算材质颜色，它只负责“把几何变成像素候选者”。"
+        },
+        {
+          "name": "Early-Z",
+          "aliases": [
+            "early depth test"
+          ],
+          "short": "在片元着色器执行前先做深度测试，提前丢弃被遮挡的片元。",
+          "detail": "如果片元肯定会被已有深度值挡住，硬件可以跳过昂贵的 shader 执行。使用 discard、深度写入或某些 shader 副作用会破坏 Early-Z。",
+          "why": "它是对抗 overdraw 的关键机制；合理排序不透明物体能显著提高 Early-Z 命中率。",
+          "confusion": "Early-Z 是优化，不是正确性要求；最终仍会做常规深度测试保证结果正确。"
+        },
+        {
+          "name": "FBO",
+          "aliases": [
+            "Framebuffer Object",
+            "帧缓冲对象"
+          ],
+          "short": "OpenGL ES 中的离屏渲染目标，可挂载颜色、深度、模板附件。",
+          "detail": "FBO 让渲染结果不直接上屏，而是写入纹理或 renderbuffer，供后续 Pass 采样。它是多 Pass 后处理、离屏导出和纹理化的基础。",
+          "why": "FBO 的创建/切换有成本，格式和 load/store action 直接影响带宽；RenderGraph 常常负责 FBO 池化复用。",
+          "confusion": "FBO 是 OpenGL 的对象概念；Vulkan/Metal 中对应的是 framebuffer + attachment/image view 组合。"
+        },
+        {
+          "name": "RenderTarget",
+          "aliases": [
+            "渲染目标",
+            "Attachment"
+          ],
+          "short": "一次渲染 Pass 写入的目标纹理或缓冲区。",
+          "detail": "颜色 attachment 存最终颜色，depth/stencil attachment 存深度和模板。MRT 允许一个 Pass 同时写多个目标。",
+          "why": "渲染目标的格式、尺寸、samples 决定显存占用和带宽；RenderGraph 会按这些属性做复用。",
+          "confusion": "RenderTarget 是“写到哪里”，Texture 是“存了什么”；同一张纹理可以既是上一个 Pass 的输出，也是下一个 Pass 的输入。"
+        },
+        {
+          "name": "Pass",
+          "aliases": [
+            "渲染 Pass"
+          ],
+          "short": "一次有明确输入输出和渲染状态的绘制阶段。",
+          "detail": "例如 OES Input Pass 把外部纹理转成 2D 纹理，Effect Pass 做滤镜，Composite Pass 合成图层。Pass 是 RenderGraph 的节点。",
+          "why": "把渲染拆成 Pass 可以让依赖关系显式化，但也增加带宽和同步成本；Pass 不是越多越好。",
+          "confusion": "Pass 不等于 DrawCall；一个 Pass 里可以有多个 DrawCall，也可以只有一个全屏三角形。"
+        },
+        {
+          "name": "RenderGraph",
+          "aliases": [
+            "渲染图"
+          ],
+          "short": "用有向无环图描述 Pass 依赖关系和资源生命周期的渲染架构。",
+          "detail": "每个节点是 Pass，边是资源读写依赖。编译阶段可自动分配显存、插入 barrier、复用不再冲突的资源（aliasing）。",
+          "why": "它把“谁写哪张纹理、谁读哪张纹理、什么时候能释放”变成可分析的数据，是复杂移动/车机渲染引擎的常用骨架。",
+          "confusion": "RenderGraph 是架构方法，不是某个 API 对象；单 Pass 场景使用它往往得不偿失。"
+        },
+        {
+          "name": "CommandBuffer",
+          "aliases": [
+            "命令缓冲"
+          ],
+          "short": "预先录制的 GPU 命令序列，可稍后提交到队列执行。",
+          "detail": "显式 API 中，应用先把 draw、barrier、资源绑定等命令录进 buffer，再提交到图形/计算/传输队列。录制可以多线程进行。",
+          "why": "它把 CPU 提交工作与 GPU 执行解耦，是多线程渲染和 frame in flight 的基础。",
+          "confusion": "CommandBuffer 不是“已经执行完的结果”；提交后 GPU 可能仍在异步执行，必须用同步原语管理生命周期。"
+        },
+        {
+          "name": "PSO",
+          "aliases": [
+            "Pipeline State Object",
+            "管线状态对象"
+          ],
+          "short": "把 shader 与固定功能状态一次性固化成的渲染管线对象。",
+          "detail": "Vulkan/Metal/D3D12 用 PSO 描述完整管线状态，如顶点输入格式、混合模式、深度状态、shader 组合。切换 PSO 通常比 OpenGL 逐项改状态更可控。",
+          "why": "PSO 组合爆炸会导致首次使用卡顿和包体膨胀，工程上要做离线编译、管线缓存和变体裁剪。",
+          "confusion": "PSO 不是单纯的 shader 程序；它包含整条管线的状态集合。"
+        },
+        {
+          "name": "Descriptor",
+          "aliases": [
+            "Descriptor Set",
+            "BindGroup",
+            "资源绑定"
+          ],
+          "short": "显式 API 中描述着色器如何访问 buffer/image 的绑定信息。",
+          "detail": "Descriptor 把资源视图、采样器和绑定槽组合起来。更新频率决定是否可复用，错误绑定通常会导致校验错误或读垃圾数据。",
+          "why": "Descriptor 管理是显式 API 工程量的重要来源，也是 RenderGraph 自动同步之外最容易被低估的部分。",
+          "confusion": "Descriptor 描述“怎么访问资源”，不是资源本身；同一张纹理可以有多个不同采样器视图。"
+        },
+        {
+          "name": "DrawCall",
+          "aliases": [
+            "绘制调用"
+          ],
+          "short": "CPU 向 GPU 发出的一次绘制指令。",
+          "detail": "一次 draw call 通常对应一个网格/图元范围，受状态切换、资源绑定、PSO 切换、shader 复杂度共同影响。",
+          "why": "DrawCall 多往往意味着 CPU 提交和状态切换成本高，但它不是唯一瓶颈；填充率、带宽、overdraw 同样重要。",
+          "confusion": "“DrawCall 多就一定卡”是单指标谬误；应结合 GPU profiling 判断瓶颈。"
+        },
+        {
+          "name": "mipmap",
+          "aliases": [
+            "多级渐远纹理"
+          ],
+          "short": "同一张纹理的预计算缩小版本序列。",
+          "detail": "GPU 根据屏幕覆盖率选择合适的 mip 级别，减少远处纹理的采样次数和闪烁。",
+          "why": "mipmap 牺牲约 1/3 存储空间，换取更稳定的纹理过滤和更好的缓存效率。",
+          "confusion": "mipmap 不是压缩格式；它是同一纹理的多分辨率副本。"
+        },
+        {
+          "name": "采样",
+          "aliases": [
+            "texture sampling",
+            "纹理采样"
+          ],
+          "short": "按 UV 坐标从纹理中读取纹素，并经过过滤得到颜色值。",
+          "detail": "采样涉及坐标寻址、mip 选择、双线性/三线性/各向异性过滤。外部纹理 OES 的采样语义还与普通 2D 纹理不同。",
+          "why": "采样是片元阶段最常见的带宽来源；理解采样才能正确处理 OES→2D 转换和色彩空间。",
+          "confusion": "采样不等于简单数组下标；过滤和 mip 选择会读取多个纹素并混合。"
+        },
+        {
+          "name": "混合",
+          "aliases": [
+            "blending",
+            "Alpha blending"
+          ],
+          "short": "把当前片元颜色与渲染目标中已有颜色按规则合成。",
+          "detail": "常见公式是 src * srcFactor + dst * dstFactor。预乘 Alpha、-alpha blending、加法混合都会改变结果。",
+          "why": "UI、粒子、透明图层都依赖混合；预乘 Alpha 语义不统一是视频纹理链常见 bug 来源。",
+          "confusion": "混合发生在片元 shader 之后、写回之前；它不负责计算片元自身颜色。"
+        },
+        {
+          "name": "深度缓冲",
+          "aliases": [
+            "Z-buffer",
+            "depth buffer"
+          ],
+          "short": "为每个像素存储当前最近深度值的缓冲区。",
+          "detail": "深度测试决定片元是否比已有几何更近。深度精度受 near/far 平面和格式（16/24/32 bit）影响。",
+          "why": "正确使用深度测试可以减少 overdraw；错误配置会导致 z-fighting 或透明物体排序错误。",
+          "confusion": "深度缓冲解决可见性，不解决透明混合顺序；透明物体通常仍需排序。"
+        },
+        {
+          "name": "模板缓冲",
+          "aliases": [
+            "stencil buffer"
+          ],
+          "short": "按像素存储额外整数标记，用于控制后续绘制是否通过测试。",
+          "detail": "常用于遮罩、轮廓描边、镜像反射区域限制。模板测试在深度测试附近执行，状态由 API 配置。",
+          "why": "模板缓冲能以较低成本实现复杂区域控制，但需要注意与深度附件共享存储和 load/store 成本。",
+          "confusion": "模板值不是颜色值，也不会直接显示；它只是控制绘制的掩码。"
+        },
+        {
+          "name": "RenderPass",
+          "aliases": [
+            "渲染通道",
+            "渲染趟"
+          ],
+          "short": "显式 API 中对『一次渲染到一组附件』的正式声明。",
+          "detail": "Vulkan 的 VkRenderPass 描述这次绘制用到哪些 color/depth 附件、每个 subpass 读谁写谁、以及加载/存储策略（LOAD/DONT_CARE/STORE）。它把 OpenGL 里隐式的 FBO 绑定变成显式对象，便于驱动提前规划同步与 tile 内存。",
+          "why": "它是 Pass 概念在显式 API 里的落地；理解它才知道 RenderGraph 编译后生成的是什么。",
+          "confusion": "RenderPass 不是一张图或一次 draw call；它是一次渲染阶段的『契约/描述』。"
+        },
+        {
+          "name": "Subpass",
+          "aliases": [
+            "子通道",
+            "子渲染通道"
+          ],
+          "short": "RenderPass 内部的子阶段，可让它的数据留在片上内存而不写回主存。",
+          "detail": "多个 subpass 同属一个 RenderPass，可以用 input attachment 读上一个 subpass 的结果。移动端 TBDR 借此把 G-Buffer→光照留在 tile 内完成，避免中间纹理落主存的带宽开销。",
+          "why": "它是移动端后处理/延迟渲染省带宽的关键；见显式API §6.2。",
+          "confusion": "Subpass 不是独立的 RenderPass；它共享同一组附件与同一个渲染目标生命周期。"
+        },
+        {
+          "name": "多 Pass",
+          "aliases": [
+            "多通道",
+            "Multi-pass",
+            "多趟渲染"
+          ],
+          "short": "一帧内多次渲染到不同目标、再合成的管线组织方式。",
+          "detail": "例如先渲染阴影到深度图、再渲染主场景到 HDR 纹理、最后做色调映射到屏幕。每次『渲染到目标』就是一个 Pass。Pass 多了以后，谁写哪张纹理、谁读哪张、何时可释放就成了依赖管理问题——这正是 RenderGraph 要解决的。",
+          "why": "它是 FBO 特效链（L3）与 Pass/RenderGraph（L4）之间的桥：你早见过的多 Pass 就是它的朴素形态。",
+          "confusion": "多 Pass 不等于多 draw call；一个 Pass 内可以有成百上千次 draw call。"
+        }
+      ]
+    },
+    {
+      "id": "sync-scheduling",
+      "label": "同步与调度",
+      "terms": [
+        {
+          "name": "Fence",
+          "aliases": [
+            "栅栏"
+          ],
+          "short": "用于 CPU 等待 GPU 完成工作的同步对象。",
+          "detail": "CPU 提交命令后得到 fence，在需要复用资源或读取结果时等待 fence 被 signal。",
+          "why": "Fence 是防止 CPU 改写 GPU 正在使用资源的关键手段；滥用等待会造成帧时间尖刺。",
+          "confusion": "Fence 是 CPU 等 GPU；Semaphore 主要是 GPU 队列之间或呈现同步。"
+        },
+        {
+          "name": "Semaphore",
+          "aliases": [
+            "信号量"
+          ],
+          "short": "用于 GPU 队列之间或 swapchain 呈现的同步对象。",
+          "detail": "例如渲染队列完成后 signal，呈现引擎 wait 后再 present。Vulkan 中 semaphore 不用于 CPU 等待。",
+          "why": "它表达了 GPU 工作流之间的顺序依赖，是显式 API 避免隐式同步的核心工具。",
+          "confusion": "Semaphore 不是 Fence；CPU 等待应使用 fence，而不是 semaphore。"
+        },
+        {
+          "name": "Barrier",
+          "aliases": [
+            "Pipeline Barrier",
+            "管线屏障"
+          ],
+          "short": "显式声明资源状态转换、执行依赖和内存可见性的同步指令。",
+          "detail": "Vulkan 中 barrier 可把纹理从 COLOR_ATTACHMENT 转为 SHADER_READ_ONLY，并保证之前的写入对之后的读取可见。",
+          "why": "忘记 barrier 会导致数据竞争或读旧数据；过度 barrier 会破坏并行性。RenderGraph 常自动插入。",
+          "confusion": "Barrier 不是“等待所有 GPU 工作结束”；正确用法是精确描述 who/when/what 的依赖。"
+        },
+        {
+          "name": "Swapchain",
+          "aliases": [
+            "交换链"
+          ],
+          "short": "应用渲染结果与系统呈现引擎之间的一组可交替使用的图像缓冲。",
+          "detail": "应用渲染到 swapchain image，present 后由合成器显示。双缓冲/三缓冲决定提前几帧渲染。",
+          "why": "Swapchain 决定延迟、撕裂和吞吐的平衡；重建 swapchain 是窗口尺寸变化时的常见开销。",
+          "confusion": "Swapchain 不是单一 buffer；它是一组 buffer，present 只是交出当前 image。"
+        },
+        {
+          "name": "VSync",
+          "aliases": [
+            "垂直同步"
+          ],
+          "short": "把帧呈现对齐到显示器刷新周期的机制。",
+          "detail": "开启 VSync 可避免撕裂，但可能引入等待和输入延迟；关闭则可能撕裂并让 GPU/CPU 空转。",
+          "why": "音视频播放和车机 HMI 都需要在“流畅、低延迟、不撕裂”之间做取舍。",
+          "confusion": "VSync 不提升 GPU 算力；它约束的是呈现时机。"
+        },
+        {
+          "name": "Frame in flight",
+          "aliases": [
+            "在途帧"
+          ],
+          "short": "CPU 已提交但 GPU 尚未完成的帧数量。",
+          "detail": "允许 CPU 领先 GPU 1–3 帧可以提高吞吐，但每多一帧都会增加输入到显示的延迟。必须用 fence 限制上限。",
+          "why": "它是吞吐与延迟的直接调节旋钮；车机和交互场景通常比游戏更重视低延迟。",
+          "confusion": "Frame in flight 不等于 buffer 数量；它描述的是流水线深度，往往由资源槽位和同步共同决定。"
+        },
+        {
+          "name": "双缓冲 / 三缓冲",
+          "aliases": [
+            "double buffering",
+            "triple buffering"
+          ],
+          "short": "使用两块或三块缓冲交替渲染与显示，以平衡撕裂、延迟和吞吐。",
+          "detail": "双缓冲常见且延迟低；三缓冲能平滑帧率波动，但通常多一帧排队延迟。",
+          "why": "选择缓冲数要结合 VSync、合成器和输入延迟预算，不是越多越好。",
+          "confusion": "三缓冲不消除所有卡顿；它只是提供额外缓冲空间。"
+        }
+      ]
+    },
+    {
+      "id": "android-av",
+      "label": "Android 音视频链路",
+      "terms": [
+        {
+          "name": "Demux",
+          "aliases": [
+            "解封装",
+            "MediaExtractor"
+          ],
+          "short": "从 MP4/MKV 等容器中拆出音频流和视频流。",
+          "detail": "容器负责组织和交织码流；demux 只拆包，不解码。Android 中常由 MediaExtractor 或 FFmpeg 完成。",
+          "why": "混淆 demux 和 decode 会导致职责划分错误；MediaCodec 本身不负责解封装。",
+          "confusion": "Demux ≠ Decode。前者拆流，后者把压缩数据还原成像素/PCM。"
+        },
+        {
+          "name": "Codec",
+          "aliases": [
+            "编解码器"
+          ],
+          "short": "编码器/解码器，负责压缩与还原音视频数据。",
+          "detail": "H.264/H.265 是视频编码标准，MediaCodec 是 Android 提供的编解码组件接口。硬解由 VPU 完成，软解由 CPU 完成。",
+          "why": "编码格式、profile/level、码率和分辨率共同决定解码能力与功耗。",
+          "confusion": "Codec 不是容器；H.264 码流可以装进 MP4、TS 或 HLS 分片。"
+        },
+        {
+          "name": "MediaCodec",
+          "aliases": [
+            "Android 硬解组件"
+          ],
+          "short": "Android 提供的音视频编解码 API，常用于 H.264/H.265 硬解。",
+          "detail": "应用通过 input buffer 送码流，通过 output buffer 拿解码结果。输出可直接送到 Surface，也可在 texture 模式下进入图形管线。",
+          "why": "MediaCodec 的控制线程与渲染线程必须明确 ownership；RenderThread 不应直接 flush/dequeue。",
+          "confusion": "MediaCodec 不负责 demux，也不保证输出是 RGB；常见输出是 YUV 或有损零拷贝路径。"
+        },
+        {
+          "name": "PTS",
+          "aliases": [
+            "Presentation Timestamp",
+            "显示时间戳"
+          ],
+          "short": "帧应该被呈现给用户的时间。",
+          "detail": "播放器按 PTS 决定何时显示一帧。存在 B 帧时，解码顺序和显示顺序不同，因此 PTS 与 DTS 会分离。",
+          "why": "音视频同步、丢帧、追帧、seek 恢复都以 PTS 为核心依据。",
+          "confusion": "PTS 不是解码时间；解码时间看 DTS。"
+        },
+        {
+          "name": "DTS",
+          "aliases": [
+            "Decode Timestamp",
+            "解码时间戳"
+          ],
+          "short": "帧应该被解码的顺序时间。",
+          "detail": "在没有 B 帧的简单流中 DTS 常等于 PTS；有 B 帧时 DTS 单调递增，而 PTS 可能乱序。",
+          "why": "错误使用 DTS 做显示调度会导致画面顺序错乱。",
+          "confusion": "DTS 用于解码依赖顺序，不用于显示时刻。"
+        },
+        {
+          "name": "主时钟",
+          "aliases": [
+            "Master Clock",
+            "音频时钟"
+          ],
+          "short": "播放器用来驱动时间推进的基准时钟，通常是音频时钟。",
+          "detail": "视频帧按 videoPTS 与主时钟比较得到 drift，再决定调速、丢帧或追帧。无音频时可回退到单调时钟。",
+          "why": "它决定音画同步的基准；主时钟选错或漂移处理不当，会出现口型不同步或周期性抖动。",
+          "confusion": "主时钟不是系统墙上时间；它是播放时间线的内部锚点。"
+        },
+        {
+          "name": "AV Sync",
+          "aliases": [
+            "音视频同步"
+          ],
+          "short": "让音频与画面按同一时间线呈现的控制机制。",
+          "detail": "常见做法是以音频时钟为主，比较视频 PTS 与当前音频时间，通过调速、重复/丢弃帧来收敛漂移。",
+          "why": "同步不是“同时开始播放”，而是持续控制漂移；seek 后还要进入 recover 状态避免立刻丢帧。",
+          "confusion": "AV Sync 不是简单 sleep 到 PTS；系统调度抖动和解码提前量都会影响实际呈现。"
+        },
+        {
+          "name": "NALU",
+          "aliases": [
+            "Network Abstraction Layer Unit",
+            "网络抽象层单元"
+          ],
+          "short": "H.264/H.265 码流的基本传输单元。",
+          "detail": "NALU 承载视频编码数据或控制元数据，SPS/PPS/SEI 都是特殊类型的 NALU。封装形式可为 Annex B 或 AVCC。",
+          "why": "理解 NALU 才能正确处理解封装、随机访问点、参数集更新和硬件解码器输入格式。",
+          "confusion": "NALU 是码流单元，不是容器；MP4 是容器，里面装的是按 AVCC 组织的 NALU。"
+        },
+        {
+          "name": "YUV 4:2:0",
+          "aliases": [
+            "YUV420"
+          ],
+          "short": "亮度全采样、色度在水平和垂直方向各减半的像素格式。",
+          "detail": "每个 2×2 像素块共享一组 U/V，平均 1.5 字节/像素，相比 RGBA8888 的 4 字节节省 62.5% 空间。",
+          "why": "视频编码普遍使用 YUV420，因为它匹配人眼对亮度更敏感的特性，也显著降低带宽。",
+          "confusion": "YUV 是颜色编码，RGB 是另一种颜色表达；NV12/NV21 是 YUV420 的具体内存布局。"
+        },
+        {
+          "name": "NV12 / NV21",
+          "aliases": [
+            "半平面 YUV"
+          ],
+          "short": "YUV420 的两种常见内存布局：NV12 为 UV 交错，NV21 为 VU 交错。",
+          "detail": "平面先存全部 Y，再存交错的 UV/VU 数据。Android 相机传统上常用 NV21，视频解码输出常见 NV12。",
+          "why": "顺序搞反会出现偏色（红蓝互换）；stride/padding 也会导致花屏。",
+          "confusion": "NV12/NV21 描述的是内存排布，不是压缩算法。"
+        },
+        {
+          "name": "Stride",
+          "aliases": [
+            "Pitch",
+            "步幅"
+          ],
+          "short": "图像一行像素在内存中实际占用的字节数，可能大于 width × 每像素字节数。",
+          "detail": "对齐、硬件限制或私有 padding 都会让 stride 大于逻辑宽度。计算地址必须使用 stride，而不是 width。",
+          "why": "忽略 stride 是视频渲染花屏、斜纹和颜色错位的高频原因。",
+          "confusion": "Stride 是字节单位的行宽；width 是像素单位的逻辑宽度。"
+        },
+        {
+          "name": "OES",
+          "aliases": [
+            "GL_TEXTURE_EXTERNAL_OES",
+            "外部纹理"
+          ],
+          "short": "OpenGL ES 中用于采样外部图像源的纹理目标。",
+          "detail": "它常由 SurfaceTexture 更新，采样器类型是 samplerExternalOES，坐标和状态与 GL_TEXTURE_2D 不同，不能直接套用普通 2D 纹理流程。",
+          "why": "OES 是 Android 视频纹理化零拷贝链路的入口；进入普通多 Pass 前必须先经过 OES Input Pass 转成 2D 纹理。",
+          "confusion": "OES 纹理不能像普通 2D 纹理那样随意 mipmap 或作为普通 FBO attachment 使用。"
+        },
+        {
+          "name": "SurfaceTexture",
+          "aliases": [
+            "外部纹理桥"
+          ],
+          "short": "把 Surface 中的图像流桥接到 OpenGL ES 外部纹理的对象。",
+          "detail": "updateTexImage() 抓取最新帧，getTransformMatrix() 返回纹理坐标变换。它通常由 RenderThread 独占更新。",
+          "why": "它让解码/相机帧进入 GPU 而不经过 CPU 像素拷贝，是视频纹理化渲染的核心接缝。",
+          "confusion": "SurfaceTexture 不是 SurfaceView；前者负责纹理桥，后者负责显示 Surface。"
+        },
+        {
+          "name": "零拷贝",
+          "aliases": [
+            "Zero-copy"
+          ],
+          "short": "尽量避免 CPU 参与像素数据搬运的数据通路设计。",
+          "detail": "视频纹理化中，解码器输出直接投递到 SurfaceTexture，GPU 采样 OES 纹理。显存内部格式转换或驱动拷贝仍可能发生。",
+          "why": "它降低 CPU 占用和内存带宽，但不是绝对“0 次拷贝”；面试中应强调 ownership 和路径边界。",
+          "confusion": "零拷贝 ≠ 没有任何数据移动；更准确的说法是“CPU 不参与像素搬移”。"
+        },
+        {
+          "name": "VPU",
+          "aliases": [
+            "Video Processing Unit",
+            "视频处理单元"
+          ],
+          "short": "SoC 上专用的视频编解码硬件模块。",
+          "detail": "VPU 负责 H.264/H.265 等硬解/硬编，功耗远低于 CPU 软解，但格式与 profile 支持受芯片限制。",
+          "why": "视频播放优先走 VPU，可显著降低 CPU 占用和功耗；车载场景尤其关注确定性和热稳定性。",
+          "confusion": "VPU 不是 GPU；它专做视频编解码，不做通用像素着色。"
+        },
+        {
+          "name": "DPU / HWC",
+          "aliases": [
+            "Display Processing Unit",
+            "Hardware Composer"
+          ],
+          "short": "负责把多个图层按硬件平面叠加并送显示的专用硬件/接口。",
+          "detail": "SurfaceFlinger 决定图层如何合成，HWC 决定哪些层可走硬件 overlay，哪些必须 GPU 合成。",
+          "why": "Overlay 路径可以省 GPU 带宽和功耗；视频、相机、HUD 常优先走硬件平面。",
+          "confusion": "HWC 是 Android 合成器接口/机制，DPU 是具体显示硬件；两者相关但层级不同。"
+        },
+        {
+          "name": "SurfaceFlinger",
+          "aliases": [
+            "系统合成器"
+          ],
+          "short": "Android 的系统级窗口合成服务。",
+          "detail": "它收集各应用 Surface，交给 HWC 决定硬件叠加或 GPU 合成，最后送到显示控制器。",
+          "why": "应用 eglSwapBuffers 并不等于“直接上屏”；理解合成器才能解释延迟、overlay 和截屏差异。",
+          "confusion": "SurfaceFlinger 不是应用内的渲染线程；它在系统服务进程中运行。"
+        }
+      ]
+    },
+    {
+      "id": "color-compression",
+      "label": "色彩与压缩",
+      "terms": [
+        {
+          "name": "Premultiplied Alpha",
+          "aliases": [
+            "预乘 Alpha"
+          ],
+          "short": "RGB 通道已经乘以 alpha 值的像素存储方式。",
+          "detail": "例如半透明白色 50% 预乘后是 (0.5,0.5,0.5,0.5)。混合公式可简化为 src + dst*(1-srcAlpha)。",
+          "why": "视频纹理、UI 图层、FBO 输出必须统一 alpha 语义，否则会出现黑边、白边或颜色偏暗。",
+          "confusion": "预乘 Alpha 不是“把透明度写进 RGB”这么简单；它改变了混合公式和边缘颜色表现。"
+        },
+        {
+          "name": "BT.709 limited range",
+          "aliases": [
+            "视频有限范围",
+            "16-235"
+          ],
+          "short": "BT.709 色彩标准中，亮度用 16–235、色度用 16–240 表示有限动态范围。",
+          "detail": "视频码流常用 limited range，而 GPU/UI 常用 full range 0–255。若转换缺失会出现发灰或死黑。",
+          "why": "MediaCodec → OES → Shader → Display 链路中必须明确范围转换位置，是视频偏色高频原因。",
+          "confusion": "BT.709 是色彩空间/传递特性；limited range 是数值范围约定，两者不是同一件事。"
+        },
+        {
+          "name": "Gamma",
+          "aliases": [
+            "伽马"
+          ],
+          "short": "描述非线性亮度编码与线性光之间转换关系的指数特性。",
+          "detail": "历史上为匹配 CRT 和人类视觉，图像以近似幂函数编码。光照计算应在线性空间做，显示前再转回 gamma 空间。",
+          "why": "在线性空间做混合与光照才符合物理直觉；在 gamma 空间直接混合会导致边缘偏暗。",
+          "confusion": "Gamma 校正不是简单“调亮/调暗”；它是指编码与解码的对应关系。"
+        },
+        {
+          "name": "传递函数",
+          "aliases": [
+            "Transfer Function",
+            "EOTF/OETF"
+          ],
+          "short": "把 scene-linear 光信号映射为显示编码值，或反向解码的函数。",
+          "detail": "SDR 常用 sRGB/BT.709 类曲线，HDR10 使用 PQ，HLG 使用混合对数伽马。",
+          "why": "HDR、视频和 UI 混显时，传递函数不一致会造成整体亮度或局部对比度错误。",
+          "confusion": "传递函数不等于色域；色域描述颜色范围，传递函数描述亮度编码。"
+        },
+        {
+          "name": "PBR",
+          "aliases": [
+            "Physically Based Rendering",
+            "基于物理的渲染"
+          ],
+          "short": "用能量守恒和微表面模型描述材质与光交互的渲染方法论。",
+          "detail": "PBR 通常包含微表面分布、几何遮蔽和菲涅尔项，并用金属度/粗糙度等参数表达材质，而不是手工调高光。",
+          "why": "它让材质在不同光照环境下表现一致，是车机 3D 场景与实时渲染管线的常见基础。",
+          "confusion": "PBR 不是某个 shader；它是一套材质与光照模型约束。"
+        },
+        {
+          "name": "BRDF",
+          "aliases": [
+            "Bidirectional Reflectance Distribution Function",
+            "双向反射分布函数"
+          ],
+          "short": "描述光从某个入射方向打到表面后，向各出射方向反射比例的函数。",
+          "detail": "BRDF 是 PBR 的数学核心。微表面 BRDF 通常用 D（法线分布）、G（几何遮蔽）、F（菲涅尔）三项组合。",
+          "why": "理解 BRDF 才能明白为什么粗糙度、金属度会改变高光形状，以及为什么能量守恒不是一句口号。",
+          "confusion": "BRDF 描述反射分布，不是颜色贴图；贴图只是给 BRDF 提供输入参数。"
+        },
+        {
+          "name": "色彩空间",
+          "aliases": [
+            "Color Space",
+            "Color Gamut"
+          ],
+          "short": "定义一组颜色如何被编码、表示和相互转换的范围与规则。",
+          "detail": "常见包括 sRGB、BT.709、BT.2020。它和传递函数、位深共同决定最终色彩表现。",
+          "why": "视频、UI、HDR 混显时，色彩空间不一致会导致偏色、灰暗或过饱和。",
+          "confusion": "色彩空间回答“能表示哪些颜色”，传递函数回答“亮度如何编码”，两者不能混为一谈。"
+        },
+        {
+          "name": "HDR",
+          "aliases": [
+            "High Dynamic Range",
+            "高动态范围"
+          ],
+          "short": "亮度范围和位深显著高于传统 SDR 的影像体系。",
+          "detail": "HDR10 常为 10bit PQ + BT.2020 色域；HLG 强调广播兼容。它涉及编码、元数据、显示能力和 tone mapping。",
+          "why": "移动端/车机屏是否支持 HDR、系统是否做 tone mapping，都会影响最终观感。",
+          "confusion": "HDR 不是单纯“更亮”；没有正确 tone mapping 的高亮会被裁切或细节丢失。"
+        },
+        {
+          "name": "PQ",
+          "aliases": [
+            "Perceptual Quantizer",
+            "ST 2084"
+          ],
+          "short": "HDR10/Dolby Vision 常用的绝对亮度传递函数。",
+          "detail": "PQ 把最高约 10000 nit 的亮度范围非线性编码到 10/12bit，匹配人眼对比敏感度。",
+          "why": "理解 PQ 才能解释为什么 HDR 需要静态/动态元数据，以及为什么 SDR 内容直接拉伸会过亮。",
+          "confusion": "PQ 是传递函数，不是色域；BT.2020 才是 HDR 常配的色域。"
+        },
+        {
+          "name": "HLG",
+          "aliases": [
+            "Hybrid Log-Gamma"
+          ],
+          "short": "向下兼容 SDR 显示的 HDR 传递函数，常用于广播。",
+          "detail": "低亮部分接近传统 gamma，高亮部分转为对数编码，使 SDR 设备也能直接显示可接受画面。",
+          "why": "它解释了广播/车载流媒体为何偏好 HLG：兼容性优先于绝对亮度精度。",
+          "confusion": "HLG 不需要像 PQ 那样依赖静态元数据，但也不能简单当作 SDR gamma 使用。"
+        },
+        {
+          "name": "KTX2",
+          "aliases": [
+            "Khronos Texture 2.0"
+          ],
+          "short": "纹理容器格式，可封装 mipmap、超压缩格式和元数据。",
+          "detail": "KTX2 是“盒子”，里面可放 BasisU 编码数据或 GPU 原生压缩格式。它不改变压缩算法本身。",
+          "why": "统一纹理资产管线时，KTX2 能减少格式碎片，但是否更快取决于目标 GPU 是否原生支持。",
+          "confusion": "KTX2 ≠ BasisU；KTX2 是容器，BasisU 是可转码的内容编码。"
+        },
+        {
+          "name": "BasisU",
+          "aliases": [
+            "Basis Universal"
+          ],
+          "short": "可转码到 ETC1S/UASTC 等 GPU 格式的中间纹理编码。",
+          "detail": "一份 BasisU 资产可在运行时快速转码为目标 GPU 支持的压缩格式，减少分发包体。",
+          "why": "它解决多平台纹理格式碎片问题，但运行时转码仍有 CPU 成本。",
+          "confusion": "BasisU 不是最终 GPU 纹理格式；转码后才是 ETC/ASTC/BC 等。"
+        },
+        {
+          "name": "ASTC / ETC",
+          "aliases": [
+            "压缩纹理格式"
+          ],
+          "short": "移动端常见的 GPU 原生块压缩纹理格式。",
+          "detail": "ETC 兼容性广，ASTC 压缩率和质量更好但需硬件支持。压缩纹理可显著降低显存与带宽。",
+          "why": "纹理内存往往是移动 GPU 的大头，合适格式直接影响帧率和功耗。",
+          "confusion": "压缩纹理是给 GPU 直接采样的，不是 PNG/JPG 那种 CPU 图像压缩。"
+        },
+        {
+          "name": "VMAF",
+          "aliases": [
+            "Video Multimethod Assessment Fusion"
+          ],
+          "short": "结合多种特征并与主观观感相关性较高的视频质量指标。",
+          "detail": "常用于评测编码器/转码策略，分数越高通常主观质量越好，但仍需结合码率、延迟和设备场景。",
+          "why": "只比较 PSNR 往往与观感不一致；VMAF 更适合工程验收与 A/B 对比。",
+          "confusion": "VMAF 是质量评价，不是编码格式或码率控制算法。"
+        }
+      ]
+    },
+    {
+      "id": "culling-aa",
+      "label": "剔除、LOD 与抗锯齿",
+      "terms": [
+        {
+          "name": "LOD",
+          "aliases": [
+            "Level of Detail",
+            "细节层级"
+          ],
+          "short": "根据物体屏幕占比选择不同复杂度的模型或纹理。",
+          "detail": "远处物体使用低模和低分辨率纹理，可同时减少顶点、带宽和纹理缓存压力。",
+          "why": "LOD 是控制场景复杂度的常用手段，但切换不平滑会出现 pop-in。",
+          "confusion": "LOD 是离散或连续的资源选择策略，不是简单的“远距离不画”。"
+        },
+        {
+          "name": "视锥剔除",
+          "aliases": [
+            "Frustum Culling"
+          ],
+          "short": "丢弃相机视锥之外的物体，不提交绘制。",
+          "detail": "通常用包围盒/包围球与视锥平面做相交测试，是最基础、收益最稳定的剔除手段。",
+          "why": "它减少 DrawCall、顶点处理和资源绑定，是场景管理第一层过滤。",
+          "confusion": "视锥剔除不处理被其他物体挡住的物体；那属于遮挡剔除。"
+        },
+        {
+          "name": "遮挡剔除",
+          "aliases": [
+            "Occlusion Culling"
+          ],
+          "short": "丢弃被前方物体完全遮挡、实际不可见的物体。",
+          "detail": "可用 CPU 预计算、GPU query、hierarchical Z-buffer 或 TBDR 的隐藏面消除实现。",
+          "why": "它能显著降低 overdraw，但实现成本和场景相关性强，不是所有项目都值得做。",
+          "confusion": "遮挡剔除解决“看不见”，视锥剔除解决“在视野外”。"
+        },
+        {
+          "name": "Aliasing",
+          "aliases": [
+            "走样",
+            "锯齿"
+          ],
+          "short": "连续信号被离散采样后产生的锯齿、闪烁和摩尔纹。",
+          "detail": "几何边缘、高对比纹理、细线都容易走样。MSAA、FXAA、TAA 是常见缓解手段。",
+          "why": "理解走样有助于选择合适的抗锯齿策略，而不是一味提高分辨率。",
+          "confusion": "Aliasing 是采样不足的现象，抗锯齿是缓解采样问题的策略集合。"
+        },
+        {
+          "name": "MSAA",
+          "aliases": [
+            "多重采样抗锯齿"
+          ],
+          "short": "每个像素采样多个覆盖位置，但通常每像素只着色一次。",
+          "detail": "MSAA 主要改善几何边缘锯齿，对 shader 内部高频纹理走样帮助有限。多重采样附件会增加带宽与 resolve 成本。",
+          "why": "移动端使用 MSAA 要权衡显存带宽；TBDR 架构能让 MSAA 成本相对可控。",
+          "confusion": "MSAA 不是“渲染更高分辨率再缩小”；那是 SSAA。"
+        },
+        {
+          "name": "TBDR",
+          "aliases": [
+            "Tile-Based Deferred Rendering"
+          ],
+          "short": "移动 GPU 把屏幕切分成 tile，在片上内存完成光栅化与混合后再写回显存。",
+          "detail": "先收集几何，再逐 tile 渲染，可利用片上内存降低外部带宽并做隐藏面消除。",
+          "why": "它解释了为什么移动端重视 load/store action、tile memory、framebuffer fetch，以及为什么桌面优化经验不能直接照搬。",
+          "confusion": "TBDR 的 Deferred 不是桌面常说的 Deferred Shading；这里强调的是 tile 内延迟光栅化/可见性处理。"
+        },
+        {
+          "name": "FOV",
+          "aliases": [
+            "Field of View",
+            "视场角"
+          ],
+          "short": "相机能看到的角度范围，决定投影矩阵如何把世界压到屏幕。",
+          "detail": "FOV 越大，画面包含范围越广，但边缘透视拉伸越明显。它通常和宽高比、near/far 平面一起定义透视投影。",
+          "why": "FOV 影响构图、深度精度和视锥剔除范围；车机/HUD 场景还要考虑人眼舒适度和标定。",
+          "confusion": "FOV 不是分辨率；分辨率决定像素数，FOV 决定可见角度。"
+        }
+      ]
+    },
+    {
+      "id": "explicit-api",
+      "label": "显式 API 与引擎架构",
+      "terms": [
+        {
+          "name": "OpenGL 状态机",
+          "aliases": [
+            "GL state machine"
+          ],
+          "short": "OpenGL 用大量全局状态控制渲染，draw 前状态是否正确决定结果。",
+          "detail": "绑定纹理、切换 program、修改 blend/depth 状态都会改变全局状态。驱动需要在 draw 时校验并生成内部命令。",
+          "why": "理解状态机才能解释状态切换成本、隐藏 bug 和 RenderGraph 整理状态的动机。",
+          "confusion": "状态机不是“每个对象独立配置”；很多状态是全局或 context 级共享的。"
+        },
+        {
+          "name": "Vulkan",
+          "aliases": [
+            "显式图形 API"
+          ],
+          "short": "低开销、显式控制资源与同步的现代图形/计算 API。",
+          "detail": "应用负责内存管理、barrier、descriptor、队列同步和 pipeline 创建。相比 OpenGL，驱动“猜测”更少，确定性更强，但代码量显著增加。",
+          "why": "车机和高性能引擎关注可预测延迟、多线程录制和显式资源生命周期，Vulkan 正是为此设计。",
+          "confusion": "Vulkan 不是“更快的 OpenGL 调用替换”；它要求重新组织引擎的同步与资源管理。"
+        },
+        {
+          "name": "RenderPass / Subpass",
+          "aliases": [
+            "Vulkan 渲染通道"
+          ],
+          "short": "Vulkan 中描述一组附件、Pass 关系和子阶段依赖的结构。",
+          "detail": "Subpass 可让多个阶段共享同一RenderPass，并利用 tile memory 避免中间结果写回显存。",
+          "why": "对 TBDR 架构合理使用 subpass 能显著减少带宽，是移动端 Vulkan 优化重点。",
+          "confusion": "RenderPass 是 API 对象，不等同于通用语境里的“RenderGraph Pass”。"
+        },
+        {
+          "name": "Queue Family",
+          "aliases": [
+            "队列族"
+          ],
+          "short": "Vulkan 中支持特定命令类型的一组队列。",
+          "detail": "图形、计算、传输队列可能属于不同 family；跨 family 使用资源需要显式 ownership transfer。",
+          "why": "不理解 queue family 会导致同步错误和性能损失，尤其在异步上传/计算任务中。",
+          "confusion": "Queue family 是能力集合，不是具体的一条队列；一个 family 可包含多条队列。"
+        },
+        {
+          "name": "Memory Aliasing",
+          "aliases": [
+            "显存复用",
+            "资源别名"
+          ],
+          "short": "让生命周期不重叠的资源复用同一块显存。",
+          "detail": "RenderGraph 可根据 Pass DAG 判断哪些纹理不会同时使用，从而复用内存，降低 peak VRAM。",
+          "why": "移动端/车机显存预算紧张，aliasing 是减少峰值内存的重要手段。",
+          "confusion": "Aliasing 不是共享同一张纹理内容；它共享的是存储空间，且必须保证生命周期不重叠。"
+        },
+        {
+          "name": "JNI",
+          "aliases": [
+            "Java Native Interface"
+          ],
+          "short": "Java/Kotlin 与 C/C++ Native 代码交互的桥梁。",
+          "detail": "在 Android GPU 引擎中，Java 层通常负责 Surface/生命周期，Native 层负责 EGL/GLES 和渲染循环。",
+          "why": "JNI 边界设计决定线程 ownership 和对象生命周期；跨线程持有 jobject 需要全局引用与显式释放。",
+          "confusion": "JNI 不是线程模型本身；它只是跨语言调用机制，线程规则仍由 Android/OpenGL 约束决定。"
+        },
+        {
+          "name": "EGL",
+          "aliases": [
+            "Embedded Graphics Library"
+          ],
+          "short": "OpenGL ES 与原生窗口系统之间的接口层。",
+          "detail": "EGL 负责创建 display、config、context 和 surface，并管理 eglMakeCurrent / eglSwapBuffers。",
+          "why": "EGL 是 Android Native 渲染线程的起点；context/surface 生命周期错误会导致黑屏或 context lost。",
+          "confusion": "EGL 不负责画三角形；它只提供“在哪里、用什么上下文画”的环境。"
+        }
+      ]
+    },
+    {
+      "id": "automotive",
+      "label": "车载与智驾渲染",
+      "terms": [
+        {
+          "name": "ADAS",
+          "aliases": [
+            "高级驾驶辅助系统"
+          ],
+          "short": "Advanced Driver Assistance Systems，利用传感器实现辅助驾驶功能。",
+          "detail": "包括 AEB、ACC、车道保持、泊车辅助等。通常运行在独立 ADAS 域控制器上，与座舱域通过车载总线通信。",
+          "why": "它决定了智驾可视化的输入来源和实时性要求，也解释了为什么安全相关显示不能完全依赖座舱 GPU。",
+          "confusion": "ADAS 不是自动驾驶本身；它强调“辅助”，责任边界和降级策略不同。"
+        },
+        {
+          "name": "安全岛",
+          "aliases": [
+            "Safety Island",
+            "安全监控域"
+          ],
+          "short": "与主计算域隔离、用于监控和兜底警示的独立安全计算单元。",
+          "detail": "可独立驱动最小警示图层或蜂鸣器，即使主 SoC/GPU 异常也能显示关键警告。",
+          "why": "功能安全要求关键告警不能依赖复杂 3D 管线；安全岛是“最后一道显示保障”。",
+          "confusion": "安全岛不是普通协处理器；它的价值在于隔离性、确定性和失效独立。"
+        },
+        {
+          "name": "Vulkan SC",
+          "aliases": [
+            "Vulkan Safety Critical"
+          ],
+          "short": "面向安全关键场景的 Vulkan 子集与认证体系。",
+          "detail": "通过限制动态行为、强化确定性和认证流程，使图形 API 更适用于仪表、告警等安全相关显示。",
+          "why": "它解释了车机图形栈为何不能简单照搬消费电子 Vulkan：可预测性和认证比功能丰富更重要。",
+          "confusion": "Vulkan SC 不是另一个完全无关的 GPU API；它是 Vulkan 的安全关键裁剪与规范。"
+        },
+        {
+          "name": "SOME/IP",
+          "aliases": [
+            "Scalable Service-Oriented Middleware over IP"
+          ],
+          "short": "车载以太网上的面向服务通信中间件。",
+          "detail": "提供服务发现、请求/响应、事件通知，是 AUTOSAR 车载通信常用协议之一。",
+          "why": "智驾结果进入座舱可视化时，常经由 SOME/IP/DDS/共享内存；理解通信方式才能分析延迟和丢帧责任边界。",
+          "confusion": "SOME/IP 是通信中间件，不是渲染 API，也不是消息总线实现本身。"
+        },
+        {
+          "name": "DDS",
+          "aliases": [
+            "Data Distribution Service"
+          ],
+          "short": "以数据为中心的发布/订阅通信中间件，常用于实时系统。",
+          "detail": "通过 topic、QoS 和可靠性策略实现低耦合数据分发，在机器人和智驾系统中常见。",
+          "why": "DDS 的 QoS 会影响感知数据到可视化的实时性和可靠性，不能只看“有没有收到数据”。",
+          "confusion": "DDS 是中间件标准，不是某种具体网络协议或消息队列产品。"
+        },
+        {
+          "name": "BEV",
+          "aliases": [
+            "Bird's Eye View",
+            "鸟瞰图"
+          ],
+          "short": "把多摄像头/雷达信息变换到统一鸟瞰坐标系的表示与可视化方式。",
+          "detail": "BEV 便于融合多传感器结果，并显示车道、目标、可行驶区域和轨迹。",
+          "why": "它是智驾可视化最常见的主视图，渲染层需要处理大范围坐标、图层叠加和动态更新。",
+          "confusion": "BEV 是坐标/视图表示，不是某个具体的神经网络名称。"
+        },
+        {
+          "name": "Occupancy Network",
+          "aliases": [
+            "Occupancy",
+            "占据网络"
+          ],
+          "short": "用空间体素或网格表示“哪里被占据、哪里可通行”的感知结果。",
+          "detail": "相比只画目标框，occupancy 能表达更细的几何和可行驶空间，常以 BEV 网格方式可视化。",
+          "why": "它带来大量小单元格或网格纹理，对实例化渲染、纹理更新和带宽都有要求。",
+          "confusion": "Occupancy 表示空间占据，不等于目标检测框；两者常同时显示。"
+        },
+        {
+          "name": "AR-HUD",
+          "aliases": [
+            "增强现实抬头显示"
+          ],
+          "short": "把导航箭头、车距提示等虚拟信息叠加到真实道路视野上的显示系统。",
+          "detail": "需要摄像头/定位/车身姿态与渲染图像精确对齐，并满足亮度、畸变和延迟要求。",
+          "why": "AR-HUD 对端到端延迟和标定误差极敏感，是车载渲染中“错一点就很危险”的典型场景。",
+          "confusion": "AR-HUD 不是普通 HUD；普通 HUD 只投影固定信息，AR-HUD 要对齐现实世界。"
+        },
+        {
+          "name": "AVM",
+          "aliases": [
+            "Around View Monitor",
+            "全景影像"
+          ],
+          "short": "多路环视摄像头拼接成鸟瞰/3D 环视画面的系统。",
+          "detail": "涉及相机标定、畸变校正、投影融合和无缝拼接，对实时性和标定精度要求高。",
+          "why": "AVM 是相机纹理化和多纹理混合的典型工程场景，常与泊车辅助联动。",
+          "confusion": "AVM 是应用系统，不是单一 shader；它包含标定、融合、渲染一整条链。"
+        }
+      ]
+    },
+    {
+      "id": "procedural-graphics",
+      "label": "程序化图形学",
+      "terms": [
+        {
+          "name": "程序化几何",
+          "aliases": [
+            "Procedural Geometry",
+            "程序化建模"
+          ],
+          "short": "用数学与参数在运行时生成网格，而不是从 DCC 工具导入固定模型。",
+          "detail": "通过函数、曲线、噪声或规则把参数映射为顶点与索引，例如用一条轮廓线绕轴旋转生成花瓶。参数一变，几何立即重建。",
+          "why": "它让几何可复现、可参数化、可按需生成，是任务二「数学驱动的几何生成」阶段的核心能力。",
+          "confusion": "程序化几何不是随机几何：随机只是可选输入，关键是「参数→几何」的确定性映射。"
+        },
+        {
+          "name": "参数曲面",
+          "aliases": [
+            "Parametric Surface"
+          ],
+          "short": "用两个参数 (u, v) 通过函数 P(u, v) 描述曲面上的点。",
+          "detail": "例如平面 P(u,v)=(u,0,v)、球面可用经纬度参数表示。参数域通常是 [0,1]²，采样后得到规则顶点网格。",
+          "why": "它把「形状」变成一个函数，旋转、拉伸、扫掠等生成方式都是它的特例。",
+          "confusion": "参数曲面关心「点怎么算」，不等同于存储好的顶点缓冲；后者是前者的离散采样结果。"
+        },
+        {
+          "name": "旋转曲面",
+          "aliases": [
+            "Lathe",
+            "旋转体",
+            "车削曲面"
+          ],
+          "short": "把一条二维轮廓线绕轴旋转一周扫出的曲面。",
+          "detail": "轮廓上的点 (r, y) 绕 Y 轴旋转角 θ 得到 (r·cosθ, y, r·sinθ)。沿轮廓采样 M 段、绕轴采样 N 段，得到 M×N 个顶点与两组三角形索引。",
+          "why": "花瓶、罐体、轮毂等轴对称物体用 Lathe 几行代码就能生成，是学习「由曲线到网格」最直观的入口。",
+          "confusion": "Lathe 只适合轴对称形状；非轴对称或带复杂细节的形体需要 Extrude、Sweep 或多块组合。"
+        },
+        {
+          "name": "拉伸几何",
+          "aliases": [
+            "Extrude",
+            "挤出"
+          ],
+          "short": "把一个二维截面沿某方向或路径拉伸，形成三维实体。",
+          "detail": "沿直线拉伸得到柱体；沿曲线路径拉伸则接近 Sweep。侧壁由截面的边扫出，端面按需封盖。",
+          "why": "道路、墙体、管道等有恒定截面的结构适合用 Extrude 生成。",
+          "confusion": "Extrude 沿直线，Sweep 沿任意路径；Loft 在多个不同截面之间过渡。"
+        },
+        {
+          "name": "曲线扫掠",
+          "aliases": [
+            "Sweep",
+            "Loft",
+            "放样"
+          ],
+          "short": "让截面沿路径移动（Sweep）或在多个截面间过渡（Loft）生成曲面。",
+          "detail": "Sweep 需要一个截面和一条路径；Loft 需要一串截面，逐段插值出中间形状。",
+          "why": "它补足 Lathe/Extrude 做不到的「沿弯曲路径、截面还变化」的形体。",
+          "confusion": "Loft 的截面可以不同形状与顶点数，插值时要处理拓扑对齐。"
+        },
+        {
+          "name": "顶点缓冲",
+          "aliases": [
+            "Vertex Buffer",
+            "VBO",
+            "顶点缓存"
+          ],
+          "short": "存放顶点属性（位置、法线、UV 等）的 GPU 内存块。",
+          "detail": "程序化生成的顶点最终写入顶点缓冲，由顶点着色器按索引读取。属性可交错（interleaved）或分多个缓冲存放。",
+          "why": "理解缓冲布局才能把「数学生成的点」真正送进渲染管线。",
+          "confusion": "顶点缓冲只存数据，不含「如何连线成面」的信息；那部分在索引缓冲。"
+        },
+        {
+          "name": "索引缓冲",
+          "aliases": [
+            "Index Buffer",
+            "IBO",
+            "Element Buffer",
+            "索引缓存"
+          ],
+          "short": "存放三角形顶点索引的缓冲，让多个三角形复用同一批顶点。",
+          "detail": "规则网格中每个顶点被多个三角形共享，用索引可显著减少顶点数量与显存占用。",
+          "why": "它是「生成网格」与「画网格」之间的关键一步：顶点决定形状，索引决定拓扑。",
+          "confusion": "索引从 0 开始计数；顶点缓存溢出或索引越界会导致画面错乱。"
+        },
+        {
+          "name": "法线",
+          "aliases": [
+            "Normal",
+            "顶点法线",
+            "法向量"
+          ],
+          "short": "垂直于表面、用于光照计算的向量。",
+          "detail": "程序化几何可按解析公式求法线（如球面法线等于归一化位置），也可由相邻三角形面法线平均得到平滑法线。",
+          "why": "同样形状，法线不同会得到棱角或平滑的观感——它决定「光怎么落上去」。",
+          "confusion": "法线不是位置；缩放变换要用逆转置矩阵修正法线方向。"
+        },
+        {
+          "name": "细分",
+          "aliases": [
+            "Subdivision",
+            "细分曲面",
+            "Tessellation"
+          ],
+          "short": "增加几何采样密度，让曲面更平滑或提供位移细节。",
+          "detail": "参数曲面按更高的 (u,v) 采样率生成更多顶点；GPU 端也可用 Tessellation 阶段动态细分。",
+          "why": "细分是「同一形状、不同精度」的调节旋钮，也是 LOD 与性能预算的基础。",
+          "confusion": "细分提高的是几何密度，不等于纹理分辨率；细节也可由法线贴图伪造。"
+        },
+        {
+          "name": "Spline",
+          "aliases": [
+            "样条",
+            "样条曲线",
+            "B-Spline",
+            "贝塞尔曲线"
+          ],
+          "short": "由若干控制点定义、可平滑插值的曲线。",
+          "detail": "常见有贝塞尔、B 样条、NURBS。给定控制点与参数 t，曲线函数 P(t) 返回曲线上的点；采样后可用于 Extrude、Sweep 或生成管线。",
+          "why": "它让「路径」和「轮廓」可被数学描述，是程序化几何与运动轨迹的基础。",
+          "confusion": "样条穿过或靠近控制点，但不一定逐点经过所有控制点；是否经过取决于样条类型。"
+        },
+        {
+          "name": "噪声",
+          "aliases": [
+            "Noise",
+            "Value Noise",
+            "Gradient Noise",
+            "Simplex Noise"
+          ],
+          "short": "平滑且可复现的伪随机函数，常用于程序纹理与几何扰动。",
+          "detail": "在网格点上生成随机值再用插值得到连续场；FBM 把多个频率叠加得到更自然的细节。",
+          "why": "噪声把「随机」变得可控连续，是生成地形、锈蚀、云层与材质细节的基础工具。",
+          "confusion": "噪声函数必须确定性：相同输入给相同输出，否则动画会闪烁、结果不可复现。"
+        },
+        {
+          "name": "SDF",
+          "aliases": [
+            "Signed Distance Field",
+            "有向距离场"
+          ],
+          "short": "空间中每点到最近表面的有向距离函数：外部为正、内部为负。",
+          "detail": "球体 SDF 为 |p|-r。用 SDF 可做平滑布尔、光线步进（ray marching）和抗锯齿形状绘制。",
+          "why": "它把「形状」变成「距离函数」，组合与变形形状非常方便，是程序化与 Shader 美术的核心工具。",
+          "confusion": "SDF 是场的表示，不是网格；要显示通常需光线步进或转成网格。"
+        },
+        {
+          "name": "Geometry DSL",
+          "aliases": [
+            "几何描述语言",
+            "几何 DSL"
+          ],
+          "short": "用小型领域语言描述几何如何构造、组合与变换。",
+          "detail": "例如用 box(1,2,1).translate(...).union(cylinder(...)) 这样的表达式描述场景，再由编译器生成顶点/索引缓冲。",
+          "why": "它让几何从「硬编码函数」变成「可组合、可复用、可验证的描述」，是任务二阶段 2 的目标。",
+          "confusion": "Geometry DSL 不是通用编程语言；它聚焦几何构造与组合，把执行交给底层编译器。"
+        },
+        {
+          "name": "网格",
+          "aliases": [
+            "Mesh",
+            "三角网格"
+          ],
+          "short": "由顶点、边、三角形面组成的三维表面表示。",
+          "detail": "常见属性含位置、法线、UV、切线；拓扑用索引组织。程序化生成的结果通常就是一份 Mesh。",
+          "why": "Mesh 是几何从「数学描述」到「可渲染数据」的通用中间格式。",
+          "confusion": "Mesh 只是表面，不含材质与光照；最终画面还要靠材质、光照与着色共同决定。"
+        }
+      ]
+    },
+    {
+      "id": "pbr-material",
+      "label": "PBR 材质参数",
+      "terms": [
+        {
+          "name": "albedo",
+          "aliases": [
+            "基础反照率",
+            "base color"
+          ],
+          "short": "材质本身的固有色，PBR 漫反射与金属 F0 的输入。",
+          "detail": "非金属的漫反射系数约为 (1−metallic)·albedo/π；金属没有漫反射，albedo 直接决定镜面反射的 F0 颜色。",
+          "why": "理解 albedo 才能明白为什么金属的颜色来自反射而不是漫反射。",
+          "confusion": "albedo 不是最终像素颜色；它还要经过光照、BRDF 与色调映射。"
+        },
+        {
+          "name": "metalness",
+          "aliases": [
+            "金属度",
+            "metallic"
+          ],
+          "short": "0=非金属、1=金属，决定漫反射与镜面反射的能量分配。",
+          "detail": "metalness 增大时漫反射 (1−m) 衰减、F0 从固定 0.04 过渡到 albedo，于是金属失去固有色漫反射、反射带颜色。",
+          "why": "metalness/roughness 工作流是现代 PBR 的主流参数化方式。",
+          "confusion": "真实材质多为混合：脏污、涂层会让金属度不是纯粹的 0 或 1。"
+        },
+        {
+          "name": "roughness",
+          "aliases": [
+            "粗糙度"
+          ],
+          "short": "控制微表面法线分布宽度，决定高光是锐利还是弥散。",
+          "detail": "GGX 中 α=roughness²；粗糙度增大时高光 lobe 变宽变矮，总能量大致守恒。",
+          "why": "粗糙度是 artist 最常调的参数，直接决定材质的「光滑/磨砂」观感。",
+          "confusion": "roughness 不是「模糊贴图」；它改变的是 BRDF 的形状，而非简单图像模糊。"
+        },
+        {
+          "name": "Fresnel",
+          "aliases": [
+            "菲涅尔",
+            "F 项"
+          ],
+          "short": "入射角越掠，表面反射越强的现象与 BRDF 项。",
+          "detail": "Schlick 近似 F = F0 + (1−F0)(1−N·V)^5，用 F0 与视角快速估算反射比例。",
+          "why": "菲涅尔让边缘高光增强，是 PBR 真实感的重要来源。",
+          "confusion": "菲涅尔描述反射比例随角度变化，不是材质类型。"
+        },
+        {
+          "name": "NDF",
+          "aliases": [
+            "法线分布函数",
+            "normal distribution function",
+            "GGX"
+          ],
+          "short": "BRDF 中的 D 项，描述有多少微表面法线朝向半角向量。",
+          "detail": "常用 GGX/Trowbridge-Reitz：D = α² / (π(((N·H)²(α²−1)+1)²))，α=roughness²。",
+          "why": "D 决定高光 lobe 的形状，是理解粗糙度视觉效果的数学核心。",
+          "confusion": "NDF 是统计分布，不等于几何法线本身。"
+        },
+        {
+          "name": "IBL",
+          "aliases": [
+            "基于图像的光照",
+            "image-based lighting"
+          ],
+          "short": "用环境贴图而非解析光源提供入射光照。",
+          "detail": "通过预滤波环境贴图与 BRDF LUT 的 split-sum 近似，在实时渲染里高效实现环境反射与漫反射。",
+          "why": "没有 IBL 的金属会显得死黑，因为金属只有反射、没有漫反射。",
+          "confusion": "IBL 提供的是环境入射光，不是直接光源的阴影。"
+        }
+      ]
+    }
+  ]
+}
