@@ -48,6 +48,7 @@
 ### git 提交（2026-11-18 用户授权"先提交代码，保存修改"）
 - P6 全部产物本地 commit **`3ce7b2f`**（19 文件，+978 / −44）：审计三件套 + 诊断 + 覆盖矩阵 + Gold Standard L01 + V13/V14/SRC-RN-AV-BASE + quiz/next/乱码/used_by 修复 + 质量规范提案 + G2 材料 + 治理文档 + content.js。
 - **仅本地 commit，未 push**（D09/D11.9：远程需另行授权）。提交后工作区干净；本笔记录哈希的文档更新随后单独提交。
+- **push（2026-11-18 用户授权"push吧"）**：`git push origin master` 成功，`5359259..0b2c0a1`；`ls-remote` 实测远端 HEAD=`0b2c0a16f9de2735a722abdc8d57bc0d94620953`，本地与 origin/master 同步。**仅 push 源码，未做在线发布**（GitHub Pages 等 D02 仍未授权）。
 
 ## 2026-11-18 · P5 收尾验收
 

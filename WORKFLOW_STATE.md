@@ -59,4 +59,4 @@
 3. G2 确认后按 `NEXT_PHASE_PLAN.md` 执行 P7：先修 L02 blocker（引用失实/目标无出处）与 L13 断言链，再按覆盖矩阵 §4 顺序逐篇深化，一次一篇。
 4. 每阶段结束跑门禁（本机用 `py -3`，`python` 解析到 cygwin stub 不可用）：`py -3 tools/build_site.py` → `py -3 tools/validate_site.py`（0 FAIL/0 WARN）→ `py -3 .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md`；涉及审核时 `py -3 tools/review_gate.py`（只读）。
 5. 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）。
-6. P6 产物已本地 commit `3ce7b2f`（2026-11-18 用户授权）；**push 仍未授权**，后续阶段默认不 commit/push，除非用户明确授权（D09/D11.9）。不碰 `.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、两份旧方案文档；执行结果写入 `CHANGELOG.md` 与本文件。
+6. P6 产物已 commit `3ce7b2f` + 文档笔 `0b2c0a1`，并经用户授权 push 到 origin/master（2026-11-18，远端 HEAD=`0b2c0a1`，本地同步）；后续阶段默认不 commit/push，除非用户明确授权（D09/D11.9）；在线发布（D02）仍未授权。不碰 `.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、两份旧方案文档；执行结果写入 `CHANGELOG.md` 与本文件。
