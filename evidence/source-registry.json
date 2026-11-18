@@ -1,0 +1,173 @@
+{
+  "version": "1.0",
+  "updated": "2026-11-18",
+  "note": "来源登记表。种子来源来自现有验真队列与知识库中已引用过的权威文档；新增来源须填写 accessed 并可被 claim 引用。AI 生成内容不得自动标为 verified。",
+  "sources": [
+    {
+      "id": "SRC-ANDROID-MEDIACODEC",
+      "title": "Android MediaCodec API 文档",
+      "url": "https://developer.android.com/reference/android/media/MediaCodec",
+      "type": "official_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V01"
+      ]
+    },
+    {
+      "id": "SRC-FFMPEG-DOC",
+      "title": "FFmpeg 文档与教材（PTS/DTS、音视频同步）",
+      "url": "https://ffmpeg.org/documentation.html",
+      "type": "official_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V03",
+        "V10"
+      ]
+    },
+    {
+      "id": "SRC-KHRONOS-OES",
+      "title": "OpenGL ES GL_TEXTURE_EXTERNAL_OES 扩展规范",
+      "url": "https://registry.khronos.org/OpenGL/extensions/OES/OES_EGL_image_external.txt",
+      "type": "spec",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V04"
+      ]
+    },
+    {
+      "id": "SRC-AHARDWAREBuffer-EGLImage",
+      "title": "Android AHardwareBuffer 与 EGLImage 资料",
+      "url": "https://developer.android.com/reference/android/hardware/HardwareBuffer",
+      "type": "official_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V05"
+      ]
+    },
+    {
+      "id": "SRC-KHRONOS-GLES32",
+      "title": "OpenGL ES 3.2 Specification",
+      "url": "https://registry.khronos.org/OpenGL/specs/es/3.2/es_spec_3.2.pdf",
+      "type": "spec",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V06"
+      ]
+    },
+    {
+      "id": "SRC-GPU-PIPELINE-BP",
+      "title": "GPU pipeline best practice docs（DrawCall 与状态切换）",
+      "url": "https://developer.nvidia.com/",
+      "type": "official_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V07"
+      ]
+    },
+    {
+      "id": "SRC-KTX2-SPEC",
+      "title": "KTX 2.0 Specification",
+      "url": "https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html",
+      "type": "spec",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V08"
+      ]
+    },
+    {
+      "id": "SRC-BASIS-UNIVERSAL",
+      "title": "Basis Universal 文档",
+      "url": "https://github.com/BinomialLLC/basis_universal",
+      "type": "official_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V08"
+      ]
+    },
+    {
+      "id": "SRC-W3C-WEBGPU",
+      "title": "W3C WebGPU Specification",
+      "url": "https://www.w3.org/TR/webgpu/",
+      "type": "spec",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V09"
+      ]
+    },
+    {
+      "id": "SRC-ITU-H264",
+      "title": "ITU-T H.264 Specification",
+      "url": "https://www.itu.int/rec/T-REC-H.264",
+      "type": "spec",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V11"
+      ]
+    },
+    {
+      "id": "SRC-YUV420-DERIVATION",
+      "title": "YUV420 相对 RGBA8888 空间节省的数学推导",
+      "url": "repo:01-基础理论/音视频基础理论.md",
+      "type": "derivation",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V12"
+      ]
+    },
+    {
+      "id": "SRC-FOURCC-REF",
+      "title": "FOURCC pixel format references（NV12/NV21）",
+      "url": "https://www.fourcc.org/",
+      "type": "official_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "V02"
+      ]
+    },
+    {
+      "id": "SRC-RN-VERIFICATION",
+      "title": "Render_Notes 验真队列与术语表",
+      "url": "repo:00-导航与索引/验真队列与术语表.md",
+      "type": "repo_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06"
+      ]
+    },
+    {
+      "id": "SRC-RN-CONCEPT-INTRO",
+      "title": "Render_Notes 概念引入说明",
+      "url": "repo:00-导航与索引/概念引入说明.md",
+      "type": "repo_doc",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "E01",
+        "E02",
+        "E03",
+        "E04"
+      ]
+    },
+    {
+      "id": "SRC-VULKAN-SPEC",
+      "title": "Vulkan Specification（RenderPass/Subpass）",
+      "url": "https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html",
+      "type": "spec",
+      "accessed": "2026-11-18",
+      "used_by_claims": [
+        "E04"
+      ]
+    }
+  ]
+}

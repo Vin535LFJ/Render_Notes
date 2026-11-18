@@ -1,0 +1,38 @@
+{
+  "lesson": "L11",
+  "title": "RenderGraph 与资源生命周期 · 练习",
+  "questions": [
+    {
+      "id": "L11-Q1",
+      "type": "short",
+      "prompt": "单 Pass 场景适合上 RenderGraph 吗？为什么？",
+      "answer": "不适合。RenderGraph 的价值在管理多 Pass 依赖与显存复用，需 Pass 深度≥3 且有分支；单 Pass 使用它反而是负担。",
+      "claim_ids": [
+        "C06"
+      ]
+    },
+    {
+      "id": "L11-Q2",
+      "type": "short",
+      "prompt": "barrier 是由谁 inserted？人工还是图编译？",
+      "answer": "由 RenderGraph 在图编译期根据依赖自动推导插入；人工只声明读写关系。",
+      "claim_ids": [
+        "E04"
+      ]
+    },
+    {
+      "id": "L11-Q3",
+      "type": "choice",
+      "prompt": "RenderGraph 主要解决什么问题？",
+      "options": [
+        "提升画质",
+        "管理复杂度与正确性",
+        "替代 GPU 硬件"
+      ],
+      "answer": 1,
+      "claim_ids": [
+        "E04"
+      ]
+    }
+  ]
+}

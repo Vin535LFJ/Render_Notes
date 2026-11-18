@@ -1,0 +1,36 @@
+{
+  "lesson": "L02",
+  "title": "时间戳与同步 · 练习",
+  "questions": [
+    {
+      "id": "L02-Q1",
+      "type": "short",
+      "prompt": "画出 B 帧场景中 DTS 与 PTS 的顺序差异，并说明原因。",
+      "answer": "B 帧需参考后续帧才能解码，故解码序 DTS 与显示序 PTS 分叉；显示顺序由 PTS 决定。",
+      "claim_ids": [
+        "V03"
+      ]
+    },
+    {
+      "id": "L02-Q2",
+      "type": "short",
+      "prompt": "drift 进入强纠偏区时应该怎么做？",
+      "answer": "不应粗暴跳帧，需按源文档的分级策略处理，避免可感知的跳变。",
+      "claim_ids": []
+    },
+    {
+      "id": "L02-Q3",
+      "type": "choice",
+      "prompt": "音视频同步常以哪个时钟为主？",
+      "options": [
+        "视频时钟",
+        "音频时钟",
+        "系统墙上时钟"
+      ],
+      "answer": 1,
+      "claim_ids": [
+        "V10"
+      ]
+    }
+  ]
+}

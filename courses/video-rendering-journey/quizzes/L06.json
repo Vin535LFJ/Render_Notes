@@ -1,0 +1,39 @@
+{
+  "lesson": "L06",
+  "title": "纹理桥与零拷贝 · 练习",
+  "questions": [
+    {
+      "id": "L06-Q1",
+      "type": "short",
+      "prompt": "零拷贝到底省掉了哪一段 CPU 搬移？",
+      "answer": "省掉 CPU 把解码像素逐字节读出再 glTexImage2D 上传的那段搬移；改为共享缓冲区句柄让 GPU 直接采样。",
+      "claim_ids": [
+        "V05",
+        "C02"
+      ]
+    },
+    {
+      "id": "L06-Q2",
+      "type": "short",
+      "prompt": "OES 纹理进入 Effect Pass 前必须经过什么转换？",
+      "answer": "OES 有采样限制，需先做 YUV→RGB 与色彩空间转换、绑定为普通 2D 纹理后再进后处理链。",
+      "claim_ids": [
+        "V04"
+      ]
+    },
+    {
+      "id": "L06-Q3",
+      "type": "choice",
+      "prompt": "手机 SoC 的 CPU→GPU 数据通路走 PCIe 吗？",
+      "options": [
+        "走，和 PC 独显一样",
+        "不走，共享同一块 DRAM",
+        "只在 4K 时走"
+      ],
+      "answer": 1,
+      "claim_ids": [
+        "E02"
+      ]
+    }
+  ]
+}

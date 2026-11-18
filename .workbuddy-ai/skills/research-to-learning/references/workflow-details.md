@@ -110,6 +110,52 @@ AI 探索之旅：从机器如何学习到智能体如何思考
 - **Boundary arc**: "Here is what the tool can do" → "here is where it breaks" → "what lies beyond". Good for closing a chapter or a whole journey.
 - **Bridge sentence template**: "上一章我们把 X 解决了；但一旦需要 Y，X 就不够了——这一章引入 Z。" This is precisely the kind of sentence missing when learners complain a term appeared "out of nowhere".
 
+## Mapped specialist roles (Render_Notes extension)
+
+The five-role workflow covers the whole pipeline. Three additional specialist roles from the full proposal are mapped onto existing phases rather than creating parallel skills:
+
+### Evidence Analyst (mapped to Phase 1b)
+
+- **Input**: research findings + existing verification docs (`验真队列与术语表.md`).
+- **Actions**: extract atomic claims, attach sources, assign status/confidence/conditions, detect contradictions.
+- **Output**: `evidence/claim-ledger.json`, `evidence/source-registry.json`.
+- **Gate**: every `source_id` resolves both ways; AI-generated claims start at `open`; human promotes to `verified`.
+- **Reference**: `references/evidence-and-claims.md`.
+
+### Curriculum Designer (mapped to Phase 4)
+
+- **Input**: concept model + course goals + learner profile.
+- **Actions**: define target learner, final capability, scope, route, practice project, assessment; set prerequisite graph; serialize into `courses/*/course.json` and `curriculum.md`.
+- **Output**: course blueprint, curriculum, lesson ordering, quiz plan.
+- **Gate**: every lesson has prerequisites, objectives, source documents, and at least one assessment; IDs follow the repo's `L##` scheme.
+- **Reference**: `assets/lesson-template.md`, `references/quiz-design.md`.
+
+### Story Architect (mapped to Phase 4)
+
+- **Input**: curriculum + claim ledger + concept relations.
+- **Actions**: design the narrative arc, hook questions, causal ordering, and the explicit bridge sentence between chapters.
+- **Output**: per-chapter teaching blueprint embedded in lesson frontmatter/structure.
+- **Gate**: `check_chapter_arc.py` passes for every lesson (hook / prerequisite / concepts / bridge / practice present).
+- **Reference**: the "Narrative arc patterns" section below.
+
+### Practice Designer (mapped to Phase 4b)
+
+- **Input**: lesson checkpoint questions + declared claims + `tools/labs.json` lab inventory.
+- **Actions**: turn each checkpoint into an assessable quiz question carrying `claim_ids`; bind or propose a hands-on lab (`#/lab/<id>`) so the learner can manipulate the concept, not just read it.
+- **Output**: `courses/*/quizzes/<L##>.json`; lab binding in the lesson frontmatter `lab` field and in `tools/labs.json`.
+- **Gate**: every checkpoint is covered by a quiz prompt; every quiz `claim_ids[]` is a subset of the lesson's declared `claims[]`; every lab id resolves to a renderer type known to `KNOWN_LAB_TYPES`. `validate_site.py` §10/§11 enforce this.
+- **Boundary**: never invent a claim id to make a question "traceable"; never mark a practice as verified by the AI.
+- **Reference**: `references/quiz-design.md`, `references/practice-and-review.md`.
+
+### Knowledge Publisher / Feedback Analyst (mapped to Phase 5+)
+
+- **Input**: validated review-report auto-checks + optional local feedback entries (`tools/feedback.json`).
+- **Actions**: prepare publishing artifacts (curated VitePress tree via `build_vitepress_content.py`, offline bundle via `build_site.py`); aggregate feedback into a "needs review" hint list via `report_feedback.py`; keep source knowledge single-sourced.
+- **Output**: curated site content; `tools/report_feedback.py` output; recorded human-gate status in `WORKFLOW_STATE.md` / `CHANGELOG.md`.
+- **Gate**: G1/G2/G3 remain human-owned; AI fills only factual auto-check results, never a score or a pass verdict; no remote push/publish without explicit authorization (D09); feedback stays local (localStorage + manual JSON export), never auto-mutates claim/lesson state.
+- **Boundary**: "publishing" in this repo means a local source tree and offline-site links, not a deployed service; do not install MCP connectors or claim remote execution that did not happen.
+- **Reference**: `references/practice-and-review.md`, repo `DECISIONS.md` (D02 / D06 / D09).
+
 ## Anti-patterns
 
 - Copying the source folder tree as the table of contents.

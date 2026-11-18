@@ -1,0 +1,186 @@
+{
+  "version": "1.0",
+  "generatedAt": "2026-11-18",
+  "note": "Generated from tools/glossary.json + knowledge-model/concepts.json. Do not edit by hand.",
+  "categories": [
+    {
+      "id": "api",
+      "label": "图形 / 媒体 API",
+      "concepts": [
+        {
+          "id": "K-NV12",
+          "name": "NV12",
+          "layer": "L1",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=NV12"
+        },
+        {
+          "id": "K-YUV420",
+          "name": "YUV420",
+          "layer": "L1",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=YUV"
+        },
+        {
+          "id": "K-PTS",
+          "name": "PTS",
+          "layer": "L1",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=PTS"
+        },
+        {
+          "id": "K-DTS",
+          "name": "DTS",
+          "layer": "L1",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=DTS"
+        },
+        {
+          "id": "K-SYNC",
+          "name": "音视频同步",
+          "layer": "L1",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=AV%20Sync"
+        },
+        {
+          "id": "K-STRIDE",
+          "name": "Stride",
+          "layer": "L1",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=Stride"
+        },
+        {
+          "id": "K-DEMUX",
+          "name": "解封装",
+          "layer": "L2",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=Demux"
+        },
+        {
+          "id": "K-DECODE",
+          "name": "硬件解码",
+          "layer": "L2",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=MediaCodec"
+        },
+        {
+          "id": "K-SURFACE",
+          "name": "Surface",
+          "layer": "L2",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=Surface"
+        },
+        {
+          "id": "K-OES",
+          "name": "OES 外部纹理",
+          "layer": "L2",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=OES"
+        },
+        {
+          "id": "K-ZEROCOPY",
+          "name": "零拷贝",
+          "layer": "L4",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=零拷贝"
+        },
+        {
+          "id": "K-COPY",
+          "name": "逐帧拷贝",
+          "layer": "L2",
+          "group": "Android 音视频链路",
+          "route": "#/glossary?term=零拷贝"
+        },
+        {
+          "id": "K-FBO",
+          "name": "FBO 离屏渲染",
+          "layer": "L3",
+          "group": "渲染管线与资源",
+          "route": "#/glossary?term=FBO"
+        },
+        {
+          "id": "K-PASS",
+          "name": "Pass",
+          "layer": "L3",
+          "group": "渲染管线与资源",
+          "route": "#/glossary?term=Pass"
+        },
+        {
+          "id": "K-RENDERPASS",
+          "name": "RenderPass",
+          "layer": "L4",
+          "group": "渲染管线与资源",
+          "route": "#/glossary?term=RenderPass"
+        },
+        {
+          "id": "K-RENDERGRAPH",
+          "name": "RenderGraph",
+          "layer": "L4",
+          "group": "渲染管线与资源",
+          "route": "#/glossary?term=RenderGraph"
+        }
+      ]
+    },
+    {
+      "id": "algorithm",
+      "label": "渲染 / 图像算法",
+      "concepts": [
+        {
+          "id": "K-RGB",
+          "name": "RGB",
+          "layer": "L1",
+          "group": "色彩与压缩",
+          "route": "#/glossary?term=RGB"
+        },
+        {
+          "id": "K-DRAM",
+          "name": "DRAM",
+          "layer": "L1",
+          "group": "GPU 硬件与性能",
+          "route": "#/glossary?term=DRAM"
+        },
+        {
+          "id": "K-DMA",
+          "name": "DMA",
+          "layer": "L2",
+          "group": "GPU 硬件与性能",
+          "route": "#/glossary?term=DMA"
+        },
+        {
+          "id": "K-PCIE",
+          "name": "PCIe",
+          "layer": "L4",
+          "group": "GPU 硬件与性能",
+          "route": "#/glossary?term=PCIe"
+        },
+        {
+          "id": "K-DEVICE",
+          "name": "平台形态",
+          "layer": "L4",
+          "group": "GPU 硬件与性能",
+          "route": "#/glossary?term=显存"
+        },
+        {
+          "id": "K-PBR",
+          "name": "PBR",
+          "layer": "L7",
+          "group": "色彩与压缩",
+          "route": "#/glossary?term=PBR"
+        }
+      ]
+    },
+    {
+      "id": "concept",
+      "label": "核心概念",
+      "concepts": [
+        {
+          "id": "K-MVP",
+          "name": "MVP 矩阵",
+          "layer": "L7",
+          "group": "数学与坐标变换",
+          "route": "#/course/L13"
+        }
+      ]
+    }
+  ]
+}

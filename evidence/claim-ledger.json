@@ -1,0 +1,728 @@
+{
+  "version": "1.0",
+  "updated": "2026-11-18",
+  "note": "种子断言从 00-导航与索引/验真队列与术语表.md 与 概念引入说明.md 派生，状态继承原 ✅/⚠️/❗ 标记。AI 生成内容不得自动标为 verified。",
+  "claims": [
+    {
+      "id": "V01",
+      "claim": "MediaCodec 不负责 demux，需配合 MediaExtractor/FFmpeg",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-ANDROID-MEDIACODEC",
+          "locator": "V01",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [],
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md",
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "used_by_lessons": [
+        "L01",
+        "L04"
+      ]
+    },
+    {
+      "id": "V02",
+      "claim": "NV12 为 UV 交错、NV21 为 VU 交错",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-FOURCC-REF",
+          "locator": "V02",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "注意 stride/padding"
+      ],
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L01"
+      ]
+    },
+    {
+      "id": "V03",
+      "claim": "显示调度主要依据 PTS，B 帧场景 DTS≠PTS",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-FFMPEG-DOC",
+          "locator": "V03",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [],
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L02"
+      ]
+    },
+    {
+      "id": "V04",
+      "claim": "GL_TEXTURE_EXTERNAL_OES 用于外部图像采样",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-KHRONOS-OES",
+          "locator": "V04",
+          "evidence_type": "spec"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "采样与格式有限制"
+      ],
+      "source_documents": [
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "used_by_lessons": [
+        "L06"
+      ]
+    },
+    {
+      "id": "V05",
+      "claim": "零拷贝是尽量减少拷贝而非绝对 0 拷贝",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-AHARDWAREBuffer-EGLImage",
+          "locator": "V05",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "驱动/格式转换可能触发拷贝"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L06"
+      ]
+    },
+    {
+      "id": "V06",
+      "claim": "顶点/片元是 OpenGL ES 2/3 常见可编程阶段",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-KHRONOS-GLES32",
+          "locator": "V06",
+          "evidence_type": "spec"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "管线还有固定功能阶段"
+      ],
+      "source_documents": [
+        "03-图形与GPU工程/图形与GPU工程.md"
+      ],
+      "used_by_lessons": [
+        "L08"
+      ]
+    },
+    {
+      "id": "V07",
+      "claim": "DrawCall 成本与状态切换、绑定、着色器切换共同相关",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-GPU-PIPELINE-BP",
+          "locator": "V07",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "不是单一指标"
+      ],
+      "source_documents": [
+        "03-图形与GPU工程/图形与GPU工程.md"
+      ],
+      "used_by_lessons": [
+        "L08"
+      ]
+    },
+    {
+      "id": "V08",
+      "claim": "KTX2 是容器，BasisU 是内容编码方案",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-KTX2-SPEC",
+          "locator": "V08",
+          "evidence_type": "spec"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "ETC1S/UASTC 策略不同"
+      ],
+      "source_documents": [
+        "03-图形与GPU工程/色彩管理与采样滤波.md"
+      ],
+      "used_by_lessons": [
+        "L03"
+      ]
+    },
+    {
+      "id": "V09",
+      "claim": "WebGPU 不是 WebGL 小改版，更接近现代显式 GPU API",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-W3C-WEBGPU",
+          "locator": "V09",
+          "evidence_type": "spec"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "后端差异影响实际性能"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L09"
+      ]
+    },
+    {
+      "id": "V10",
+      "claim": "音视频同步常以音频时钟为主",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-FFMPEG-DOC",
+          "locator": "V10",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "也可能采用外部主时钟"
+      ],
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L02"
+      ]
+    },
+    {
+      "id": "V11",
+      "claim": "H.264 NALU 包含 SPS/PPS/SEI 控制元数据",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-ITU-H264",
+          "locator": "V11",
+          "evidence_type": "spec"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "Annex B vs AVCC 封装差异"
+      ],
+      "source_documents": [
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "used_by_lessons": [
+        "L04"
+      ]
+    },
+    {
+      "id": "V12",
+      "claim": "YUV420 相对 RGBA8888 节省 62.5% 空间（4:2:0）",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-YUV420-DERIVATION",
+          "locator": "V12",
+          "evidence_type": "derivation"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [
+        "前提为 4:2:0 采样"
+      ],
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L01"
+      ]
+    },
+    {
+      "id": "C01",
+      "claim": "TextureView 通常更灵活但可能更耗合成成本",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C01",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "依赖设备合成器实现与系统版本"
+      ],
+      "source_documents": [
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "used_by_lessons": [
+        "L05"
+      ]
+    },
+    {
+      "id": "C02",
+      "claim": "Surface 直出零拷贝",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C02",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "需绑定 Surface 给解码器；纹理化为近零拷贝"
+      ],
+      "source_documents": [
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "used_by_lessons": [
+        "L06"
+      ]
+    },
+    {
+      "id": "C03",
+      "claim": "硬解通常更节能、CPU 占用更低",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C03",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "看设备/码率/分辨率/驱动"
+      ],
+      "source_documents": [
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "used_by_lessons": [
+        "L05"
+      ]
+    },
+    {
+      "id": "C04",
+      "claim": "KTX2 通常能降低分发体积",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C04",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "运行性能取决于 GPU 格式匹配度与转码成本"
+      ],
+      "source_documents": [
+        "03-图形与GPU工程/色彩管理与采样滤波.md"
+      ],
+      "used_by_lessons": [
+        "L03"
+      ]
+    },
+    {
+      "id": "C05",
+      "claim": "WebGPU/WebGL 性能关系",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C05",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "low"
+      },
+      "conditions": [
+        "依赖驱动/后端/任务类型"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L09"
+      ]
+    },
+    {
+      "id": "C06",
+      "claim": "RenderGraph 能降低 VRAM Peak",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C06",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "需 Pass 深度≥3 且有分支；单 Pass 不宜"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L11"
+      ]
+    },
+    {
+      "id": "C07",
+      "claim": "压缩纹理减少显存与带宽压力",
+      "claim_type": "conditional",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "C07",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "conditional",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "需 GPU 硬件原生支持；PC 端 ASTC 需软解"
+      ],
+      "source_documents": [
+        "03-图形与GPU工程/色彩管理与采样滤波.md"
+      ],
+      "used_by_lessons": [
+        "L03"
+      ]
+    },
+    {
+      "id": "P01",
+      "claim": "某方案提升 X% 性能/降低 Y% 功耗",
+      "claim_type": "contested",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "P01",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "缺统一测试方法、设备型号、样本量；已降级为 [测试数据-仅供参考]"
+      ],
+      "source_documents": [
+        "05-项目实战/项目实战指南.md"
+      ],
+      "used_by_lessons": [
+        "L15"
+      ]
+    },
+    {
+      "id": "P02",
+      "claim": "全链路零拷贝",
+      "claim_type": "contested",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "P02",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "需逐平台给出 buffer ownership 与 copy trace"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L06"
+      ]
+    },
+    {
+      "id": "P03",
+      "claim": "WebRTC 3A 参数细节与效果结论",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "P03",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "需对应实现源码或论文；暂未纳入主线"
+      ],
+      "source_documents": [
+        "02-解码与播放链路/流媒体与实时采集.md"
+      ],
+      "used_by_lessons": []
+    },
+    {
+      "id": "P04",
+      "claim": "跨平台 API 行为一致性断言",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "P04",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "需各平台官方文档逐条对照"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/显式API与同步原语.md"
+      ],
+      "used_by_lessons": [
+        "L10"
+      ]
+    },
+    {
+      "id": "P05",
+      "claim": "CPU 占用下降 98%",
+      "claim_type": "contested",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "P05",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "缺压测依据；已标记 [待验证]"
+      ],
+      "source_documents": [
+        "06-面试知识库/车载渲染引擎/06-车载座舱专题与项目表达.md"
+      ],
+      "used_by_lessons": [
+        "L15"
+      ]
+    },
+    {
+      "id": "P06",
+      "claim": "显存减少 40%",
+      "claim_type": "contested",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-VERIFICATION",
+          "locator": "P06",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "缺 RenderDoc 内存快照对比"
+      ],
+      "source_documents": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L11"
+      ]
+    },
+    {
+      "id": "E01",
+      "claim": "DRAM 是存储介质、DMA 是传输机制、PCIe 是物理总线，属三个不同维度",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-CONCEPT-INTRO",
+          "locator": "E01",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [],
+      "source_documents": [
+        "00-导航与索引/概念引入说明.md"
+      ],
+      "used_by_lessons": [
+        "L01",
+        "L00"
+      ]
+    },
+    {
+      "id": "E02",
+      "claim": "PC 独显内存→显存走 PCIe；移动 SoC 无 PCIe，共享物理 DRAM",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-CONCEPT-INTRO",
+          "locator": "E02",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "具体平台与驱动有差异，表达时先说平台"
+      ],
+      "source_documents": [
+        "00-导航与索引/概念引入说明.md"
+      ],
+      "used_by_lessons": [
+        "L06",
+        "L09"
+      ]
+    },
+    {
+      "id": "E03",
+      "claim": "Pass 就是多 Pass 特效链中的一次绘制阶段，是 FBO 离屏渲染的正式名字",
+      "claim_type": "verified_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-CONCEPT-INTRO",
+          "locator": "E03",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "high"
+      },
+      "conditions": [],
+      "source_documents": [
+        "00-导航与索引/概念引入说明.md",
+        "03-图形与GPU工程/图形与GPU工程.md"
+      ],
+      "used_by_lessons": [
+        "L08"
+      ]
+    },
+    {
+      "id": "E04",
+      "claim": "RenderGraph 把多个 Pass 的依赖画成 DAG，自动插同步并复用显存；属于 L4 工程架构",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-VULKAN-SPEC",
+          "locator": "E04",
+          "evidence_type": "spec"
+        }
+      ],
+      "verification": {
+        "status": "verified",
+        "confidence": "medium"
+      },
+      "conditions": [
+        "Pass≥3 且有分支才体现价值"
+      ],
+      "source_documents": [
+        "00-导航与索引/概念引入说明.md",
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "used_by_lessons": [
+        "L11"
+      ]
+    }
+  ]
+}

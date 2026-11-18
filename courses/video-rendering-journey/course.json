@@ -1,0 +1,223 @@
+{
+  "id": "video-rendering-journey",
+  "title": "一帧视频如何从文件抵达屏幕",
+  "subtitle": "从像素格式、时间戳、纹理桥，到 RenderGraph 与坐标变换的递进式教学闭环",
+  "source_course": "tools/course.json",
+  "units": [
+    {
+      "id": "U1",
+      "title": "数据的形状",
+      "subtitle": "像素与时间"
+    },
+    {
+      "id": "U2",
+      "title": "从解码到 GPU",
+      "subtitle": "纹理桥与零拷贝"
+    },
+    {
+      "id": "U3",
+      "title": "组织与呈现",
+      "subtitle": "RenderGraph 与 MVP"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "L01",
+      "unit": "U1",
+      "title": "为什么视频不是 RGB",
+      "short": "从 YUV、采样格式到 Stride，建立像素级直觉。",
+      "question": "为什么视频码流几乎不用 RGB？YUV420 到底省在哪里？",
+      "minutes": 45,
+      "objectives": [
+        "解释亮度/色度分离与 4:2:0 节省空间的数学关系",
+        "区分 NV12 与 NV21 的内存布局",
+        "说明 Stride Why 错了会花屏"
+      ],
+      "prerequisites": [
+        "L00"
+      ],
+      "reading": [
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "1-媒体处理三层数据模型",
+          "label": "音视频基础理论 §1 三层数据模型"
+        },
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "2-像素格式与色彩空间",
+          "label": "音视频基础理论 §2 像素格式"
+        }
+      ],
+      "terms": [
+        "YUV 4:2:0",
+        "NV12 / NV21",
+        "Stride",
+        "色彩空间"
+      ],
+      "checkpoint": [
+        "YUV420 相对 RGBA8888 节省多少空间？依据是什么？",
+        "忽略 stride 会出现什么现象？为什么？"
+      ],
+      "next": "L02",
+      "lessonFile": "L01-为什么视频不是-RGB.md",
+      "lab": "yuv-to-rgb"
+    },
+    {
+      "id": "L02",
+      "unit": "U1",
+      "title": "时间戳与同步",
+      "short": "先理解“什么时候显示”，再理解播放器状态机。",
+      "question": "为什么有 B 帧时 DTS ≠ PTS？音画同步为什么是时钟问题？",
+      "minutes": 40,
+      "objectives": [
+        "区分 DTS 的解码顺序与 PTS 的显示顺序",
+        "说明为什么音频常被选为主时钟",
+        "描述 seek 后为什么要禁止立刻丢帧"
+      ],
+      "prerequisites": [
+        "L01"
+      ],
+      "reading": [
+        {
+          "doc": "01-基础理论/音视频基础理论.md",
+          "anchor": "4-时间戳与同步机制",
+          "label": "音视频基础理论 §4 时间戳与同步"
+        }
+      ],
+      "terms": [
+        "PTS",
+        "DTS",
+        "主时钟",
+        "AV Sync"
+      ],
+      "checkpoint": [
+        "画出 B 帧场景中 DTS 与 PTS 的顺序差异",
+        "drift 进入强纠偏区时应该怎么做？"
+      ],
+      "next": "L03",
+      "lessonFile": "L02-时间戳与同步.md",
+      "lab": "pts-dts-timeline"
+    },
+    {
+      "id": "L06",
+      "unit": "U2",
+      "title": "纹理桥与零拷贝",
+      "short": "SurfaceTexture、OES、FBO：解码帧怎么进入 GPU。",
+      "question": "为什么说视频纹理化是“近零拷贝”？OES 为什么不能直接进普通多 Pass？",
+      "minutes": 50,
+      "objectives": [
+        "解释 updateTexImage 与变换矩阵的作用",
+        "说明 OES Input Pass 为什么必要",
+        "描述预览与导出如何复用同一 RenderGraph"
+      ],
+      "prerequisites": [
+        "L05"
+      ],
+      "reading": [
+        {
+          "doc": "02-解码与播放链路/解码与播放链路.md",
+          "anchor": "7-视频纹理化与-oes-外部纹理",
+          "label": "解码与播放链路 §7 视频纹理化"
+        },
+        {
+          "doc": "03-图形与GPU工程/GPU与渲染引擎基础与链路.md",
+          "anchor": "3-一帧的端到端链路",
+          "label": "GPU 基础 §3 端到端链路"
+        }
+      ],
+      "terms": [
+        "OES",
+        "SurfaceTexture",
+        "FBO",
+        "零拷贝",
+        "Premultiplied Alpha"
+      ],
+      "checkpoint": [
+        "零拷贝到底省掉了哪一段 CPU 搬移？",
+        "OES 纹理进入 Effect Pass 前必须经过什么转换？"
+      ],
+      "next": "L07",
+      "lessonFile": "L06-纹理桥与零拷贝.md",
+      "lab": "frame-pipeline"
+    },
+    {
+      "id": "L11",
+      "unit": "U3",
+      "title": "RenderGraph 与资源生命周期",
+      "short": "把 Pass 依赖、显存复用与自动同步变成图。",
+      "question": "RenderGraph 到底是优化性能，还是管理复杂度？",
+      "minutes": 45,
+      "objectives": [
+        "用 DAG 描述 Pass 与资源读写依赖",
+        "说明 aliasing 如何降低峰值显存",
+        "判断什么场景不该引入 RenderGraph"
+      ],
+      "prerequisites": [
+        "L10"
+      ],
+      "reading": [
+        {
+          "doc": "04-跨平台与高性能架构/跨平台与高性能架构.md",
+          "label": "跨平台与高性能架构 §2 RenderGraph"
+        }
+      ],
+      "terms": [
+        "RenderGraph",
+        "Pass",
+        "Memory Aliasing",
+        "CommandBuffer"
+      ],
+      "checkpoint": [
+        "单 Pass 场景适合上 RenderGraph 吗？为什么？",
+        "barrier 是由谁 inserted？人工还是图编译？"
+      ],
+      "next": "L12",
+      "lessonFile": "L11-RenderGraph与资源生命周期.md",
+      "lab": "rendergraph-dag"
+    },
+    {
+      "id": "L13",
+      "unit": "U3",
+      "title": "坐标变换与 MVP",
+      "short": "先问“为什么要有坐标变换”，再进入矩阵。",
+      "question": "为什么模型空间、观察空间、投影空间缺一不可？",
+      "minutes": 55,
+      "objectives": [
+        "解释每个坐标空间存在的理由",
+        "推导 MVP 的组合顺序",
+        "处理 NDC/Y-flip 的跨 API 差异"
+      ],
+      "prerequisites": [
+        "L08"
+      ],
+      "reading": [
+        {
+          "doc": "07-3D渲染与算法实现/3D变换与坐标空间.md",
+          "anchor": "1-坐标空间链",
+          "label": "3D 变换 §1 坐标空间链"
+        },
+        {
+          "doc": "07-3D渲染与算法实现/3D变换与坐标空间.md",
+          "anchor": "4-投影矩阵",
+          "label": "3D 变换 §4 投影矩阵"
+        }
+      ],
+      "terms": [
+        "顶点",
+        "视锥剔除",
+        "FOV",
+        "模型空间",
+        "投影空间",
+        "NDC"
+      ],
+      "checkpoint": [
+        "没有投影空间会发生什么？",
+        "OpenGL 与 Vulkan 的 NDC 差异在哪里？"
+      ],
+      "next": "L14",
+      "lessonFile": "L13-坐标变换与MVP.md",
+      "lab": "transform-mvp"
+    }
+  ],
+  "note": "教学版课程：ID 沿用 tools/course.json 的 L##；正文样章在 lessons/，不复制主文档内容，仅通过 source_documents 与锚点引用。"
+}

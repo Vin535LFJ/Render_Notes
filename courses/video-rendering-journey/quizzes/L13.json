@@ -1,0 +1,34 @@
+{
+  "lesson": "L13",
+  "title": "坐标变换与 MVP · 练习",
+  "questions": [
+    {
+      "id": "L13-Q1",
+      "type": "short",
+      "prompt": "没有投影空间会发生什么？",
+      "answer": "失去透视感（远处物体不变小），深度信息无法写入 w，透视除法与裁剪无法正确进行。",
+      "claim_ids": []
+    },
+    {
+      "id": "L13-Q2",
+      "type": "short",
+      "prompt": "OpenGL 与 Vulkan 的 NDC 差异在哪里？",
+      "answer": "OpenGL NDC 为 [-1,1]，Vulkan 深度范围为 [0,1]，Y 轴方向也可能相反，移植时需处理 Y-flip。",
+      "claim_ids": []
+    },
+    {
+      "id": "L13-Q3",
+      "type": "choice",
+      "prompt": "MVP 对列向量的正确相乘顺序是？",
+      "options": [
+        "M·V·P·v",
+        "P·V·M·v",
+        "V·M·P·v"
+      ],
+      "answer": 1,
+      "claim_ids": [
+        "V06"
+      ]
+    }
+  ]
+}

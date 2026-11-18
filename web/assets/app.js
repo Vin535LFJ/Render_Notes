@@ -83,6 +83,7 @@
   const LABS = (DATA.labs && DATA.labs.labs) || [];
   const LAB_MAP = new Map(LABS.map((lab) => [lab.id, lab]));
   const PROGRESS_KEY = "rn-course-progress";
+  const FEEDBACK_KEY = "rn-feedback-queue";
 
   let currentId = null;
   let renderToken = 0;
@@ -460,6 +461,94 @@
     return { done: done, total: LESSONS.length, percent: LESSONS.length ? Math.round((done / LESSONS.length) * 100) : 0 };
   }
 
+  /* ---------------- local feedback loop (no network, no auto-upload) ---------------- */
+
+  function getFeedbackQueue() {
+    try {
+      const raw = localStorage.getItem(FEEDBACK_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveFeedbackQueue(list) {
+    try {
+      localStorage.setItem(FEEDBACK_KEY, JSON.stringify(list));
+      return true;
+    } catch (err) {
+      return false; /* localStorage may be unavailable on file:// */
+    }
+  }
+
+  function addFeedbackEntry(entry) {
+    const list = getFeedbackQueue();
+    list.push(entry);
+    return saveFeedbackQueue(list);
+  }
+
+  function feedbackPanelHtml(contextLesson, contextQuiz) {
+    const count = getFeedbackQueue().length;
+    return (
+      '<details class="feedback-panel no-term" id="feedbackPanel">' +
+      '<summary>✎ 提交学习反馈 <span class="feedback-count">' + count + " 条待导出</span></summary>" +
+      '<div class="feedback-body">' +
+      '<p class="feedback-hint">反馈仅保存在本机浏览器（localStorage），不会上传。导出 JSON 后可手动粘贴到 <code>tools/feedback.json</code> 交给 <code>report_feedback.py</code> 聚合。</p>' +
+      '<label class="feedback-field"><span>类型</span><select data-fb="type">' +
+      '<option value="confusion">没看懂 / 卡住</option>' +
+      '<option value="gap">知识缺口</option>' +
+      '<option value="rating">体验评分</option>' +
+      "</select></label>" +
+      '<label class="feedback-field"><span>关联课时（可选）</span><input type="text" data-fb="lesson" value="' + escapeHtml(contextLesson || "") + '" placeholder="如 L01" /></label>' +
+      '<label class="feedback-field"><span>关联练习（可选）</span><input type="text" data-fb="quiz" value="' + escapeHtml(contextQuiz || "") + '" placeholder="如 L01" /></label>' +
+      '<label class="feedback-field"><span>关联断言 ID（可选，逗号分隔）</span><input type="text" data-fb="claims" placeholder="如 V02, V12" /></label>' +
+      '<label class="feedback-field"><span>说明</span><textarea data-fb="note" rows="3" placeholder="哪里卡住了？缺什么？"></textarea></label>' +
+      '<div class="feedback-actions">' +
+      '<button type="button" class="feedback-submit" data-fb-submit>加入本地队列</button>' +
+      '<button type="button" class="feedback-export" data-fb-export>导出 JSON（' + count + " 条）</button>" +
+      '<button type="button" class="feedback-clear" data-fb-clear>清空队列</button>' +
+      "</div>" +
+      '<p class="feedback-status" data-fb-status aria-live="polite"></p>' +
+      "</div></details>"
+    );
+  }
+
+  function mountFeedbackPanel(contextLesson, contextQuiz) {
+    const holder = document.createElement("div");
+    holder.className = "feedback-mount no-term";
+    holder.innerHTML = feedbackPanelHtml(contextLesson, contextQuiz);
+    els.content.appendChild(holder);
+  }
+
+  function feedbackContextForDoc(docId) {
+    const m = /(?:^|\/)lessons\/(L\d+)-/.exec(String(docId));
+    const lessonId = m ? m[1] : "";
+    return { lesson: lessonId, quiz: lessonId };
+  }
+
+  function exportFeedback() {
+    const list = getFeedbackQueue();
+    if (!list.length) {
+      return { ok: false, msg: "队列为空，没有可导出的反馈。" };
+    }
+    const payload = { version: 1, entries: list };
+    try {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "render-notes-feedback.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return { ok: true, msg: "已导出 " + list.length + " 条反馈。" };
+    } catch (err) {
+      return { ok: false, msg: "导出失败：当前环境不支持文件下载。" };
+    }
+  }
+
   function nextLessonId(id) {
     const index = LESSONS.findIndex((lesson) => lesson.id === id);
     return index >= 0 && index < LESSONS.length - 1 ? LESSONS[index + 1].id : "";
@@ -604,7 +693,8 @@
       '<button type="button" class="lesson-toggle" data-lesson="' + escapeHtml(lesson.id) + '">' +
       (done ? "标记为未完成" : "标记本课完成") + "</button>" +
       (nextId ? '<a class="lesson-next" href="' + courseRoute(nextId) + '">下一课 →</a>' : '<a class="lesson-next" href="' + courseRoute() + '">回到课程地图 →</a>') +
-      "</section>";
+      "</section>" +
+      feedbackPanelHtml(lesson.id, lesson.id);
 
     buildToc(els.content);
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -961,6 +1051,10 @@
     if (!lab) { renderLabList(); return; }
     if (lab.type === "lathe") { renderLatheLab(lab); return; }
     if (lab.type === "pbr") { renderPbrLab(lab); return; }
+    if (lab.type === "yuv") { renderYuvLab(lab); return; }
+    if (lab.type === "timeline") { renderTimelineLab(lab); return; }
+    if (lab.type === "pipeline") { renderPipelineLab(lab); return; }
+    if (lab.type === "dag") { renderDagLab(lab); return; }
     renderMvpLab(lab);
   }
 
@@ -1782,6 +1876,943 @@
     draw();
   }
 
+  /* ---------- shared control wiring for the compact labs ---------- */
+
+  function wireLabControls(params, inputs, defaults, draw) {
+    const sync = (input) => {
+      const key = input.dataset.param;
+      const output = els.content.querySelector('[data-out="' + key + '"]');
+      if (input.type === "checkbox") params[key] = input.checked;
+      else if (input.tagName === "SELECT") params[key] = input.value;
+      else params[key] = parseFloat(input.value);
+      if (output) {
+        if (input.type === "checkbox" || input.tagName === "SELECT") {
+          output.textContent = "";
+        } else if (Number.isInteger(defaults[key])) {
+          output.textContent = " " + Math.round(params[key]);
+        } else {
+          output.textContent = " " + params[key].toFixed(2);
+        }
+      }
+    };
+    inputs.forEach((input) => {
+      const handler = () => { sync(input); draw(); };
+      input.addEventListener("input", handler);
+      input.addEventListener("change", handler);
+      sync(input);
+    });
+    const reset = $("labReset");
+    if (reset) {
+      reset.addEventListener("click", () => {
+        inputs.forEach((input) => {
+          const key = input.dataset.param;
+          if (input.type === "checkbox") input.checked = !!defaults[key];
+          else input.value = defaults[key];
+          sync(input);
+        });
+        draw();
+      });
+    }
+  }
+
+  function labCssColor(name, fallback) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  function labStageRow(s, i) {
+    return '<div class="lab-stage"><span class="lab-stage-index">' + (i + 1) + "</span>" +
+      "<strong>" + escapeHtml(s.name) + "</strong><small>" + escapeHtml(s.desc) + "</small>" +
+      '<code data-stage-value="' + i + '">—</code></div>';
+  }
+
+  function labDocsLinks(lab) {
+    return (lab.docs || []).map((id) => {
+      const doc = docMap.get(id);
+      return doc ? '<a href="' + routeFor(id) + '">' + escapeHtml(shortTitle(doc.title)) + "</a>" : "";
+    }).join("");
+  }
+
+  function labTermChips(lab) {
+    return (lab.terms || []).map((name) =>
+      '<a class="term-chip" href="' + glossaryRoute(name) + '">' + escapeHtml(name) + "</a>"
+    ).join("");
+  }
+
+  /* ---------- YUV → RGB conversion lab ---------- */
+
+  const YUV_DEFAULTS = { y0: 200, y1: 140, y2: 140, y3: 90, u: 110, v: 160, format: "420" };
+
+  function yuvToRgb255(y, u, v) {
+    return [
+      Math.max(0, Math.min(255, y + 1.402 * (v - 128))),
+      Math.max(0, Math.min(255, y - 0.344 * (u - 128) - 0.714 * (v - 128))),
+      Math.max(0, Math.min(255, y + 1.772 * (u - 128))),
+    ];
+  }
+
+  function renderYuvLab(lab) {
+    if (labDispose) { labDispose(); labDispose = null; }
+    currentId = null;
+    renderToken++;
+    document.title = lab.title + " · 图形实验室";
+    els.breadcrumb.innerHTML =
+      '<span>图形实验室</span><span class="crumb-sep">/</span>' +
+      '<span class="crumb-current">' + escapeHtml(lab.title) + "</span>";
+    els.tocNav.innerHTML = "";
+
+    const lesson = LESSON_MAP.get(lab.lesson);
+    const stages = (lab.stages || []).map(labStageRow).join("");
+    const formatOptions =
+      '<option value="444">4:4:4 · 无下采样</option>' +
+      '<option value="422">4:2:2 · 色度水平减半</option>' +
+      '<option value="420" selected>4:2:0 · 色度水平垂直减半</option>';
+
+    els.content.innerHTML =
+      '<section class="lab-hero no-term">' +
+      '<span class="hero-eyebrow">交互实验 · ' + escapeHtml(lab.lesson || "独立") + "</span>" +
+      "<h1>" + escapeHtml(lab.title) + "</h1><p>" + escapeHtml(lab.subtitle) + "</p>" +
+      '<div class="lab-hero-meta">' +
+      (lesson ? '<a href="' + courseRoute(lesson.id) + '">← ' + escapeHtml(lesson.id + " " + lesson.title) + "</a>" : "") +
+      labDocsLinks(lab) + '<a href="' + labRoute() + '">全部实验</a></div></section>' +
+      '<section class="lab-section no-term"><h2>核心公式</h2>' +
+      '<div class="lab-formula">$$' + lab.formula + '$$</div>' +
+      '<p class="lab-hint">BT.601 full-range 近似：Y 承载亮度，U/V 承载色度偏移。下采样只发生在色度上——人眼对亮度远比对颜色敏感。</p></section>' +
+      '<section class="lab-section no-term"><h2>交互画布</h2><div class="lab-layout">' +
+      '<div class="lab-panel lab-controls">' +
+      '<div class="lab-panel-head"><strong>参数</strong><button type="button" class="lab-reset" id="labReset">重置</button></div>' +
+      '<label class="lab-control"><span>Y0（左上）<output data-out="y0"></output></span><input type="range" data-param="y0" min="16" max="235" step="1" value="' + YUV_DEFAULTS.y0 + '" /></label>' +
+      '<label class="lab-control"><span>Y1（右上）<output data-out="y1"></output></span><input type="range" data-param="y1" min="16" max="235" step="1" value="' + YUV_DEFAULTS.y1 + '" /></label>' +
+      '<label class="lab-control"><span>Y2（左下）<output data-out="y2"></output></span><input type="range" data-param="y2" min="16" max="235" step="1" value="' + YUV_DEFAULTS.y2 + '" /></label>' +
+      '<label class="lab-control"><span>Y3（右下）<output data-out="y3"></output></span><input type="range" data-param="y3" min="16" max="235" step="1" value="' + YUV_DEFAULTS.y3 + '" /></label>' +
+      '<label class="lab-control"><span>U（色度）<output data-out="u"></output></span><input type="range" data-param="u" min="0" max="255" step="1" value="' + YUV_DEFAULTS.u + '" /></label>' +
+      '<label class="lab-control"><span>V（色度）<output data-out="v"></output></span><input type="range" data-param="v" min="0" max="255" step="1" value="' + YUV_DEFAULTS.v + '" /></label>' +
+      '<label class="lab-control lab-select"><span>采样格式</span><select data-param="format">' + formatOptions + "</select></label>" +
+      '<div class="lab-clip-state" id="labYuvState">—</div></div>' +
+      '<div class="lab-panel lab-view">' +
+      '<canvas class="lab-canvas" id="labCanvas" width="640" height="440" aria-label="2×2 像素块的采样与字节布局"></canvas>' +
+      '<div class="lab-canvas-legend"><span>左：2×2 像素还原颜色</span><span>右：块内字节布局</span><span>教学近似</span></div>' +
+      "</div></div></section>" +
+      '<section class="lab-section no-term"><h2>逐阶段看一个 2×2 块</h2>' +
+      '<div class="lab-stage-grid">' + stages + "</div></section>" +
+      '<section class="lab-section no-term"><h2>像素读数</h2><div class="lab-matrix-grid">' +
+      '<div class="lab-matrix"><h3>像素 0</h3><pre id="yuvRgb0"></pre><small>Y0 + 共享色度</small></div>' +
+      '<div class="lab-matrix"><h3>像素 1</h3><pre id="yuvRgb1"></pre><small>Y1 + 共享色度</small></div>' +
+      '<div class="lab-matrix"><h3>像素 2</h3><pre id="yuvRgb2"></pre><small>Y2 + 共享色度</small></div>' +
+      '<div class="lab-matrix"><h3>像素 3</h3><pre id="yuvRgb3"></pre><small>Y3 + 共享色度</small></div>' +
+      "</div></section>" +
+      labFooterHtml(lab) +
+      '<section class="lab-section no-term"><h2>对应着色器代码</h2><pre><code class="language-glsl">' +
+      escapeHtml(lab.code || "") + "</code></pre></section>" +
+      '<section class="lab-section no-term"><h2>关键术语</h2><div class="lesson-terms">' + labTermChips(lab) + "</div>" +
+      '<p class="lab-note-text">' + icon("info") + " " + escapeHtml(lab.note || "") + "</p></section>";
+
+    renderMath(els.content);
+    enhanceCode(els.content, renderToken);
+    buildToc(els.content);
+    window.scrollTo({ top: 0, behavior: "auto" });
+    updateProgress();
+
+    const canvas = $("labCanvas");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const params = Object.assign({}, YUV_DEFAULTS);
+    const inputs = Array.from(els.content.querySelectorAll("[data-param]"));
+    const stageValues = Array.from(els.content.querySelectorAll("[data-stage-value]"));
+    const set = (id, txt) => { const el = $(id); if (el) el.textContent = txt; };
+
+    function blockBytes() {
+      const k = params.format === "444" ? 4 : params.format === "422" ? 2 : 1;
+      return 4 + k + k;
+    }
+
+    function draw() {
+      const W = canvas.width, H = canvas.height;
+      const bg = labCssColor("--bg", "#ffffff");
+      const border = labCssColor("--border-strong", "#d0d7de");
+      const accent = labCssColor("--accent", "#3b5bdb");
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = border; ctx.lineWidth = 1;
+      ctx.setLineDash([4, 5]); ctx.strokeRect(8, 8, W - 16, H - 16); ctx.setLineDash([]);
+
+      const ys = [params.y0, params.y1, params.y2, params.y3];
+      const size = 128, gap = 10, ox = 46, oy = 92;
+
+      // chroma-sharing outlines behind the pixel block
+      ctx.strokeStyle = accent; ctx.lineWidth = 2;
+      if (params.format === "420") {
+        ctx.setLineDash([6, 5]);
+        ctx.strokeRect(ox - 8, oy - 26, size * 2 + gap + 16, size * 2 + gap + 42);
+        ctx.setLineDash([]);
+        ctx.fillStyle = accent;
+        ctx.font = "600 12px system-ui, sans-serif";
+        ctx.fillText("U / V 被 4 个像素共享", ox, oy - 32);
+      } else if (params.format === "422") {
+        ctx.setLineDash([6, 5]);
+        ctx.strokeRect(ox - 8, oy - 8, size * 2 + gap + 16, size + 16);
+        ctx.strokeRect(ox - 8, oy + size + gap - 8, size * 2 + gap + 16, size + 16);
+        ctx.setLineDash([]);
+        ctx.fillStyle = accent;
+        ctx.font = "600 12px system-ui, sans-serif";
+        ctx.fillText("U0 V0", ox + size + 4, oy - 12);
+        ctx.fillText("U1 V1", ox + size + 4, oy + size + gap + 4);
+      } else {
+        ctx.font = "600 12px system-ui, sans-serif";
+        ctx.fillStyle = accent;
+        ctx.fillText("每像素独立 U/V", ox, oy - 32);
+      }
+
+      // 2x2 pixel block
+      ys.forEach((y, i) => {
+        const rgb = yuvToRgb255(y, params.u, params.v);
+        const px = ox + (i % 2) * (size + gap);
+        const py = oy + Math.floor(i / 2) * (size + gap);
+        ctx.fillStyle = "rgb(" + Math.round(rgb[0]) + "," + Math.round(rgb[1]) + "," + Math.round(rgb[2]) + ")";
+        ctx.fillRect(px, py, size, size);
+        ctx.strokeStyle = border; ctx.lineWidth = 1.5;
+        ctx.strokeRect(px, py, size, size);
+        const lum = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+        ctx.fillStyle = lum > 140 ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.9)";
+        ctx.font = "600 13px system-ui, sans-serif";
+        ctx.fillText("Y" + i + " = " + Math.round(y), px + 8, py + 22);
+        ctx.font = "12px system-ui, sans-serif";
+        ctx.fillText(rgb.map((n) => Math.round(n)).join(", "), px + 8, py + 40);
+      });
+
+      // byte layout chips (right)
+      const chip = 46, cgap = 8, cx0 = 400, cy0 = 96;
+      const layout = [];
+      const ysNames = ["Y0", "Y1", "Y2", "Y3"];
+      if (params.format === "444") {
+        ysNames.forEach((n, i) => layout.push([n, "y"], ["U" + i, "u"], ["V" + i, "v"]));
+      } else if (params.format === "422") {
+        layout.push(["Y0", "y"], ["Y1", "y"], ["U0", "u"], ["V0", "v"], ["Y2", "y"], ["Y3", "y"], ["U1", "u"], ["V1", "v"]);
+      } else {
+        layout.push(["Y0", "y"], ["Y1", "y"], ["Y2", "y"], ["Y3", "y"], ["U", "u"], ["V", "v"]);
+      }
+      ctx.fillStyle = labCssColor("--text", "#1f2328");
+      ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillText("块内字节序", cx0, cy0 - 12);
+      const chipColor = { y: "#4c6ef5", u: "#2da44e", v: "#d97706" };
+      layout.forEach(([label, kind], i) => {
+        const x = cx0 + (i % 4) * (chip + cgap);
+        const y = cy0 + Math.floor(i / 4) * (chip + cgap);
+        ctx.fillStyle = chipColor[kind];
+        ctx.globalAlpha = 0.16;
+        ctx.fillRect(x, y, chip, chip);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = chipColor[kind]; ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, chip, chip);
+        ctx.fillStyle = labCssColor("--text", "#1f2328");
+        ctx.font = "600 12px system-ui, sans-serif";
+        ctx.fillText(label, x + 10, y + chip / 2 + 4);
+      });
+
+      // bottom summary
+      const bytes = blockBytes();
+      const saving = (1 - bytes / 16) * 100;
+      ctx.fillStyle = labCssColor("--text", "#1f2328");
+      ctx.font = "600 13px system-ui, sans-serif";
+      ctx.fillText("2×2 块 = " + bytes + " 字节 · RGBA8888 = 16 字节 · 节省 " + saving.toFixed(1) + "%", ox, oy + size * 2 + gap + 44);
+
+      const stageTexts = [
+        (params.format === "444" ? "4:4:4" : params.format === "422" ? "4:2:2" : "4:2:0") +
+          (params.format === "420" ? "（NV12 / NV21 类）" : ""),
+        "Y0–Y3 逐像素独立 · 4 字节",
+        "4Y + " + (bytes - 4 - (params.format === "444" ? 4 : params.format === "422" ? 2 : 1)) + "U + " + (bytes - 4 - (params.format === "444" ? 4 : params.format === "422" ? 2 : 1)) + "V",
+        bytes + " B / 16 B",
+        saving.toFixed(1) + "%",
+        yuvToRgb255(params.y0, params.u, params.v).map((n) => Math.round(n)).join(", "),
+      ];
+      stageValues.forEach((node, i) => { node.textContent = stageTexts[i] || "—"; });
+      [0, 1, 2, 3].forEach((i) => {
+        set("yuvRgb" + i, "(" + yuvToRgb255(ys[i], params.u, params.v).map((n) => Math.round(n)).join(", ") + ")");
+      });
+      const state = $("labYuvState");
+      if (state) state.textContent = "当前格式 " + (params.format === "444" ? "4:4:4" : params.format === "422" ? "4:2:2" : "4:2:0") + " · 块 " + bytes + " B · 节省 " + saving.toFixed(1) + "%";
+    }
+
+    wireLabControls(params, inputs, YUV_DEFAULTS, draw);
+    wireLabFooter(lab);
+    labRedraw = draw;
+    labDispose = () => { labRedraw = null; };
+    draw();
+  }
+
+  /* ---------- PTS / DTS reorder timeline lab ---------- */
+
+  const TIMELINE_DEFAULTS = { gop: "IBBP", dts: 3 };
+  const TIMELINE_PRESETS = {
+    IBBP: {
+      label: "IBBPBBP · 经典 7 帧",
+      frames: [
+        { name: "I0", type: "I", dts: 0, pts: 0 },
+        { name: "P0", type: "P", dts: 1, pts: 3 },
+        { name: "B0", type: "B", dts: 2, pts: 1 },
+        { name: "B1", type: "B", dts: 3, pts: 2 },
+        { name: "P1", type: "P", dts: 4, pts: 6 },
+        { name: "B2", type: "B", dts: 5, pts: 4 },
+        { name: "B3", type: "B", dts: 6, pts: 5 },
+      ],
+    },
+    IBP: {
+      label: "IBPBP · 少量 B 帧",
+      frames: [
+        { name: "I0", type: "I", dts: 0, pts: 0 },
+        { name: "P0", type: "P", dts: 1, pts: 2 },
+        { name: "B0", type: "B", dts: 2, pts: 1 },
+        { name: "P1", type: "P", dts: 3, pts: 4 },
+        { name: "B1", type: "B", dts: 4, pts: 3 },
+      ],
+    },
+    IPP: {
+      label: "IPPP · 无 B 帧",
+      frames: [
+        { name: "I0", type: "I", dts: 0, pts: 0 },
+        { name: "P0", type: "P", dts: 1, pts: 1 },
+        { name: "P1", type: "P", dts: 2, pts: 2 },
+        { name: "P2", type: "P", dts: 3, pts: 3 },
+      ],
+    },
+  };
+  const TIMELINE_TYPE_COLOR = { I: "#b35900", P: "#3b5bdb", B: "#2da44e" };
+
+  function renderTimelineLab(lab) {
+    if (labDispose) { labDispose(); labDispose = null; }
+    currentId = null;
+    renderToken++;
+    document.title = lab.title + " · 图形实验室";
+    els.breadcrumb.innerHTML =
+      '<span>图形实验室</span><span class="crumb-sep">/</span>' +
+      '<span class="crumb-current">' + escapeHtml(lab.title) + "</span>";
+    els.tocNav.innerHTML = "";
+
+    const lesson = LESSON_MAP.get(lab.lesson);
+    const stages = (lab.stages || []).map(labStageRow).join("");
+    const gopOptions = Object.keys(TIMELINE_PRESETS)
+      .map((key) => '<option value="' + key + '"' + (key === TIMELINE_DEFAULTS.gop ? " selected" : "") + ">" + TIMELINE_PRESETS[key].label + "</option>")
+      .join("");
+
+    els.content.innerHTML =
+      '<section class="lab-hero no-term">' +
+      '<span class="hero-eyebrow">交互实验 · ' + escapeHtml(lab.lesson || "独立") + "</span>" +
+      "<h1>" + escapeHtml(lab.title) + "</h1><p>" + escapeHtml(lab.subtitle) + "</p>" +
+      '<div class="lab-hero-meta">' +
+      (lesson ? '<a href="' + courseRoute(lesson.id) + '">← ' + escapeHtml(lesson.id + " " + lesson.title) + "</a>" : "") +
+      labDocsLinks(lab) + '<a href="' + labRoute() + '">全部实验</a></div></section>' +
+      '<section class="lab-section no-term"><h2>核心公式</h2>' +
+      '<div class="lab-formula">$$' + lab.formula + '$$</div>' +
+      '<p class="lab-hint">B 帧是双向预测，必须等参考帧先解码，于是码流顺序（DTS）与播放顺序（PTS）分离。拖动解码指针观察重排序缓冲如何运转。</p></section>' +
+      '<section class="lab-section no-term"><h2>交互画布</h2><div class="lab-layout">' +
+      '<div class="lab-panel lab-controls">' +
+      '<div class="lab-panel-head"><strong>参数</strong><button type="button" class="lab-reset" id="labReset">重置</button></div>' +
+      '<label class="lab-control lab-select"><span>GOP 结构</span><select data-param="gop">' + gopOptions + "</select></label>" +
+      '<label class="lab-control"><span>解码指针 DTS<output data-out="dts"></output></span><input type="range" data-param="dts" min="0" max="6" step="1" value="' + TIMELINE_DEFAULTS.dts + '" /></label>' +
+      '<div class="lab-clip-state" id="labTimelineState">—</div></div>' +
+      '<div class="lab-panel lab-view">' +
+      '<canvas class="lab-canvas" id="labCanvas" width="640" height="440" aria-label="解码顺序与显示顺序对照"></canvas>' +
+      '<div class="lab-canvas-legend"><span>上：解码顺序 DTS</span><span>中：重排序缓冲</span><span>下：显示顺序 PTS</span></div>' +
+      "</div></div></section>" +
+      '<section class="lab-section no-term"><h2>逐阶段看一次解码</h2>' +
+      '<div class="lab-stage-grid">' + stages + "</div></section>" +
+      '<section class="lab-section no-term"><h2>当前帧读数</h2><div class="lab-matrix-grid">' +
+      '<div class="lab-matrix"><h3>解码指针</h3><pre id="tlCur"></pre><small>当前正在解码的帧</small></div>' +
+      '<div class="lab-matrix"><h3>重排序缓冲</h3><pre id="tlBuf"></pre><small>已解码未显示</small></div>' +
+      '<div class="lab-matrix"><h3>下一显示帧</h3><pre id="tlNext"></pre><small>PTS 最小的已解码帧</small></div>' +
+      '<div class="lab-matrix"><h3>PTS − DTS</h3><pre id="tlDelta"></pre><small>当前帧的重排延迟</small></div>' +
+      "</div></section>" +
+      labFooterHtml(lab) +
+      '<section class="lab-section no-term"><h2>播放器同步伪代码</h2><pre><code class="language-cpp">' +
+      escapeHtml(lab.code || "") + "</code></pre></section>" +
+      '<section class="lab-section no-term"><h2>关键术语</h2><div class="lesson-terms">' + labTermChips(lab) + "</div>" +
+      '<p class="lab-note-text">' + icon("info") + " " + escapeHtml(lab.note || "") + "</p></section>";
+
+    renderMath(els.content);
+    enhanceCode(els.content, renderToken);
+    buildToc(els.content);
+    window.scrollTo({ top: 0, behavior: "auto" });
+    updateProgress();
+
+    const canvas = $("labCanvas");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const params = Object.assign({}, TIMELINE_DEFAULTS);
+    const inputs = Array.from(els.content.querySelectorAll("[data-param]"));
+    const stageValues = Array.from(els.content.querySelectorAll("[data-stage-value]"));
+    const set = (id, txt) => { const el = $(id); if (el) el.textContent = txt; };
+
+    function frameBox(x, y, w, h, frame, opts) {
+      const bg = labCssColor("--bg", "#ffffff");
+      ctx.globalAlpha = opts.dim ? 0.28 : 1;
+      ctx.fillStyle = opts.active ? TIMELINE_TYPE_COLOR[frame.type] : bg;
+      ctx.strokeStyle = TIMELINE_TYPE_COLOR[frame.type];
+      ctx.lineWidth = opts.active ? 2 : 1.5;
+      ctx.beginPath();
+      if (opts.rounded && ctx.roundRect) ctx.roundRect(x, y, w, h, 8); else ctx.rect(x, y, w, h);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = opts.active ? "#ffffff" : labCssColor("--text", "#1f2328");
+      ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillText(frame.name, x + w / 2 - 8, y + h / 2 - 2);
+      ctx.font = "10px system-ui, sans-serif";
+      ctx.fillText(opts.trackLabel(frame), x + w / 2 - 14, y + h / 2 + 12);
+      ctx.globalAlpha = 1;
+    }
+
+    function draw() {
+      const W = canvas.width, H = canvas.height;
+      const bg = labCssColor("--bg", "#ffffff");
+      const border = labCssColor("--border-strong", "#d0d7de");
+      const muted = labCssColor("--text-subtle", "#8c959f");
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = border; ctx.lineWidth = 1;
+      ctx.setLineDash([4, 5]); ctx.strokeRect(8, 8, W - 16, H - 16); ctx.setLineDash([]);
+
+      const preset = TIMELINE_PRESETS[params.gop] || TIMELINE_PRESETS.IBBP;
+      const frames = preset.frames;
+      const cur = Math.min(params.dts, frames.length - 1);
+      const byDts = frames.slice().sort((a, b) => a.dts - b.dts);
+      const byPts = frames.slice().sort((a, b) => a.pts - b.pts);
+      const decoded = frames.filter((f) => f.dts <= cur);
+      const next = decoded.slice().sort((a, b) => a.pts - b.pts)[0] || null;
+      const buffer = next ? decoded.filter((f) => f.pts > next.pts) : decoded;
+      const curFrame = byDts[cur];
+
+      const bw = 68, bh = 42, step = 80;
+      const rowX = (idx) => 34 + idx * step;
+      const yDec = 72, yBuf = 208, yDis = 344;
+
+      // track labels
+      ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillStyle = muted;
+      ctx.fillText("解码顺序 DTS →", 34, yDec - 12);
+      ctx.fillText("重排序缓冲（已解码未显示）", 34, yBuf - 12);
+      ctx.fillText("显示顺序 PTS →", 34, yDis - 12);
+
+      // decode -> display arrows
+      ctx.strokeStyle = muted; ctx.lineWidth = 1; ctx.globalAlpha = 0.5;
+      frames.forEach((f) => {
+        const x0 = rowX(f.dts) + bw / 2, y0 = yDec + bh;
+        const x1 = rowX(f.pts) + bw / 2, y1 = yDis;
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.bezierCurveTo(x0, (y0 + y1) / 2, x1, (y0 + y1) / 2, x1, y1);
+        ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+
+      // decode track
+      byDts.forEach((f, idx) => {
+        frameBox(rowX(idx), yDec, bw, bh, f, {
+          active: idx === cur,
+          dim: idx > cur,
+          trackLabel: () => "DTS " + f.dts,
+        });
+      });
+
+      // buffer track
+      const bufNames = buffer.map((f) => f.name).join(" ");
+      if (buffer.length) {
+        buffer.forEach((f, idx) => {
+          const x = 34 + idx * 60;
+          ctx.fillStyle = labCssColor("--accent-soft", "rgba(59,91,219,0.12)");
+          ctx.strokeStyle = labCssColor("--accent", "#3b5bdb");
+          ctx.lineWidth = 1;
+          ctx.fillRect(x, yBuf, 50, 34);
+          ctx.strokeRect(x, yBuf, 50, 34);
+          ctx.fillStyle = labCssColor("--text", "#1f2328");
+          ctx.font = "600 12px system-ui, sans-serif";
+          ctx.fillText(f.name, x + 16, yBuf + 21);
+        });
+      } else {
+        ctx.fillStyle = muted;
+        ctx.font = "12px system-ui, sans-serif";
+        ctx.fillText("（空）", 40, yBuf + 22);
+      }
+
+      // display track
+      byPts.forEach((f, idx) => {
+        const isNext = next && f.pts === next.pts;
+        frameBox(rowX(idx), yDis, bw, bh, f, {
+          active: isNext,
+          dim: !decoded.includes(f) && !isNext,
+          trackLabel: () => "PTS " + f.pts,
+        });
+      });
+
+      const stageTexts = [
+        "DTS " + cur + " · " + curFrame.name,
+        decoded.length + " 帧",
+        buffer.length ? buffer.map((f) => f.name).join(" ") + "（" + buffer.length + " 帧）" : "空",
+        next ? next.name + " · PTS " + next.pts : "—",
+        "PTS−DTS = " + (curFrame.pts - curFrame.dts),
+        "DTS ≤ PTS 恒成立",
+      ];
+      stageValues.forEach((node, i) => { node.textContent = stageTexts[i] || "—"; });
+      set("tlCur", curFrame.name + "（DTS " + cur + "）");
+      set("tlBuf", buffer.length ? buffer.map((f) => f.name).join(" ") : "空");
+      set("tlNext", next ? next.name + "（PTS " + next.pts + "）" : "—");
+      set("tlDelta", "+" + (curFrame.pts - curFrame.dts));
+      const state = $("labTimelineState");
+      if (state) state.textContent = "已解码 " + decoded.length + " 帧 · 缓冲 " + buffer.length + " 帧 · 下一显示 " + (next ? next.name : "—");
+    }
+
+    // keep the DTS slider in range when the GOP preset shrinks
+    const dtsInput = els.content.querySelector('[data-param="dts"]');
+    if (dtsInput) dtsInput.max = "6";
+
+    wireLabControls(params, inputs, TIMELINE_DEFAULTS, draw);
+    wireLabFooter(lab);
+    labRedraw = draw;
+    labDispose = () => { labRedraw = null; };
+    draw();
+  }
+
+  /* ---------- decode-to-texture ownership pipeline lab ---------- */
+
+  const PIPELINE_DEFAULTS = { path: "zerocopy", stage: 0, queue: 3 };
+
+  function renderPipelineLab(lab) {
+    if (labDispose) { labDispose(); labDispose = null; }
+    currentId = null;
+    renderToken++;
+    document.title = lab.title + " · 图形实验室";
+    els.breadcrumb.innerHTML =
+      '<span>图形实验室</span><span class="crumb-sep">/</span>' +
+      '<span class="crumb-current">' + escapeHtml(lab.title) + "</span>";
+    els.tocNav.innerHTML = "";
+
+    const lesson = LESSON_MAP.get(lab.lesson);
+    const stages = (lab.stages || []).map(labStageRow).join("");
+    const pathOptions =
+      '<option value="zerocopy" selected>零拷贝 · SurfaceTexture / OES</option>' +
+      '<option value="copy">拷贝路径 · CPU 拷回再上传</option>';
+
+    els.content.innerHTML =
+      '<section class="lab-hero no-term">' +
+      '<span class="hero-eyebrow">交互实验 · ' + escapeHtml(lab.lesson || "独立") + "</span>" +
+      "<h1>" + escapeHtml(lab.title) + "</h1><p>" + escapeHtml(lab.subtitle) + "</p>" +
+      '<div class="lab-hero-meta">' +
+      (lesson ? '<a href="' + courseRoute(lesson.id) + '">← ' + escapeHtml(lesson.id + " " + lesson.title) + "</a>" : "") +
+      labDocsLinks(lab) + '<a href="' + labRoute() + '">全部实验</a></div></section>' +
+      '<section class="lab-section no-term"><h2>数据通路</h2>' +
+      '<div class="lab-formula">$$' + lab.formula + '$$</div>' +
+      '<p class="lab-hint">所有权切换点在 BufferQueue：解码器生产，消费方（GL/显示）接管。逐阶段推进指针，确认像素在哪些环节经过 CPU。</p></section>' +
+      '<section class="lab-section no-term"><h2>交互画布</h2><div class="lab-layout">' +
+      '<div class="lab-panel lab-controls">' +
+      '<div class="lab-panel-head"><strong>参数</strong><button type="button" class="lab-reset" id="labReset">重置</button></div>' +
+      '<label class="lab-control lab-select"><span>路径</span><select data-param="path">' + pathOptions + "</select></label>" +
+      '<label class="lab-control"><span>当前阶段<output data-out="stage"></output></span><input type="range" data-param="stage" min="0" max="5" step="1" value="' + PIPELINE_DEFAULTS.stage + '" /></label>' +
+      '<label class="lab-control"><span>BufferQueue 深度<output data-out="queue"></output></span><input type="range" data-param="queue" min="1" max="4" step="1" value="' + PIPELINE_DEFAULTS.queue + '" /></label>' +
+      '<div class="lab-clip-state" id="labPipeState">—</div></div>' +
+      '<div class="lab-panel lab-view">' +
+      '<canvas class="lab-canvas" id="labCanvas" width="640" height="440" aria-label="解码帧到显示的管线"></canvas>' +
+      '<div class="lab-canvas-legend"><span>高亮 = 当前阶段</span><span>红虚线 = CPU 拷贝</span><span>1080p RGBA ≈ 8.3 MB/帧</span></div>' +
+      "</div></div></section>" +
+      '<section class="lab-section no-term"><h2>逐阶段看一帧的所有权</h2>' +
+      '<div class="lab-stage-grid">' + stages + "</div></section>" +
+      '<section class="lab-section no-term"><h2>拷贝成本读数</h2><div class="lab-matrix-grid">' +
+      '<div class="lab-matrix"><h3>CPU 拷贝次数</h3><pre id="pipeCopies"></pre><small>像素离开 GPU 的次数</small></div>' +
+      '<div class="lab-matrix"><h3>额外带宽/帧</h3><pre id="pipeBw"></pre><small>1080p RGBA8888</small></div>' +
+      '<div class="lab-matrix"><h3>在途帧</h3><pre id="pipeQueue"></pre><small>BufferQueue 深度</small></div>' +
+      '<div class="lab-matrix"><h3>CPU 可读像素</h3><pre id="pipeCpu"></pre><small>能否直接读像素</small></div>' +
+      "</div></section>" +
+      labFooterHtml(lab) +
+      '<section class="lab-section no-term"><h2>零拷贝消费骨架代码</h2><pre><code class="language-java">' +
+      escapeHtml(lab.code || "") + "</code></pre></section>" +
+      '<section class="lab-section no-term"><h2>关键术语</h2><div class="lesson-terms">' + labTermChips(lab) + "</div>" +
+      '<p class="lab-note-text">' + icon("info") + " " + escapeHtml(lab.note || "") + "</p></section>";
+
+    renderMath(els.content);
+    enhanceCode(els.content, renderToken);
+    buildToc(els.content);
+    window.scrollTo({ top: 0, behavior: "auto" });
+    updateProgress();
+
+    const canvas = $("labCanvas");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const params = Object.assign({}, PIPELINE_DEFAULTS);
+    const inputs = Array.from(els.content.querySelectorAll("[data-param]"));
+    const stageValues = Array.from(els.content.querySelectorAll("[data-stage-value]"));
+    const set = (id, txt) => { const el = $(id); if (el) el.textContent = txt; };
+
+    function nodes() {
+      if (params.path === "copy") {
+        return ["解码器", "BufferQueue", "CPU 拷回", "纹理上传", "Effect Pass", "显示合成"];
+      }
+      return ["解码器", "BufferQueue", "SurfaceTexture", "OES 纹理采样", "Effect Pass", "显示合成"];
+    }
+
+    function ownership() {
+      if (params.path === "copy") {
+        return ["硬件解码器", "图形缓冲区", "CPU", "CPU → GPU", "GPU", "SurfaceFlinger"];
+      }
+      return ["硬件解码器", "图形缓冲区", "解码器 → 消费方", "GPU 专属", "GPU", "SurfaceFlinger"];
+    }
+
+    function draw() {
+      const W = canvas.width, H = canvas.height;
+      const bg = labCssColor("--bg", "#ffffff");
+      const border = labCssColor("--border-strong", "#d0d7de");
+      const muted = labCssColor("--text-subtle", "#8c959f");
+      const accent = labCssColor("--accent", "#3b5bdb");
+      const danger = "#d97706";
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = border; ctx.lineWidth = 1;
+      ctx.setLineDash([4, 5]); ctx.strokeRect(8, 8, W - 16, H - 16); ctx.setLineDash([]);
+
+      const names = nodes();
+      const owners = ownership();
+      const stageIdx = Math.min(params.stage, names.length - 1);
+      const isCopy = params.path === "copy";
+
+      const nw = 92, nh = 62, gap = 10;
+      const x0 = 16, y0 = 96;
+      names.forEach((name, i) => {
+        const x = x0 + i * (nw + gap);
+        const active = i === stageIdx;
+        ctx.fillStyle = active ? accent : bg;
+        ctx.strokeStyle = active ? accent : border;
+        ctx.lineWidth = active ? 2 : 1.5;
+        ctx.fillRect(x, y0, nw, nh);
+        ctx.strokeRect(x, y0, nw, nh);
+        ctx.fillStyle = active ? "#ffffff" : labCssColor("--text", "#1f2328");
+        ctx.font = "600 12px system-ui, sans-serif";
+        const words = name.split(" ");
+        words.forEach((word, wi) => {
+          ctx.fillText(word, x + nw / 2 - ctx.measureText(word).width / 2, y0 + 26 + wi * 15);
+        });
+        ctx.fillStyle = muted;
+        ctx.font = "10px system-ui, sans-serif";
+        ctx.fillText(owners[i], x + nw / 2 - 30, y0 + nh - 8);
+        if (i < names.length - 1) {
+          ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(x + nw, y0 + nh / 2);
+          ctx.lineTo(x + nw + gap, y0 + nh / 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + nw + gap - 6, y0 + nh / 2 - 4);
+          ctx.lineTo(x + nw + gap, y0 + nh / 2);
+          ctx.lineTo(x + nw + gap - 6, y0 + nh / 2 + 4);
+          ctx.stroke();
+        }
+      });
+
+      // DRAM bar + copy detour
+      const dramY = 244;
+      ctx.fillStyle = labCssColor("--accent-soft", "rgba(59,91,219,0.12)");
+      ctx.strokeStyle = border;
+      ctx.fillRect(x0, dramY, W - 2 * x0, 46);
+      ctx.strokeRect(x0, dramY, W - 2 * x0, 46);
+      ctx.fillStyle = labCssColor("--text", "#1f2328");
+      ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillText("DRAM / 系统内存", x0 + 12, dramY + 28);
+      if (isCopy) {
+        ctx.strokeStyle = danger; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
+        const cx1 = x0 + 1 * (nw + gap) + nw / 2;
+        const cx2 = x0 + 2 * (nw + gap) + nw / 2;
+        const cx3 = x0 + 3 * (nw + gap) + nw / 2;
+        ctx.beginPath(); ctx.moveTo(cx1, y0 + nh); ctx.lineTo(cx1, dramY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx2, dramY); ctx.lineTo(cx2, y0 + nh); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx3, y0 + nh); ctx.lineTo(cx3, dramY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = danger;
+        ctx.font = "600 12px system-ui, sans-serif";
+        ctx.fillText("拷出 ≈8.3 MB", cx2 - 40, dramY + 20);
+        ctx.fillText("拷回 ≈8.3 MB", cx3 - 40, dramY + 20);
+      } else {
+        ctx.fillStyle = labCssColor("--text", "#1f2328");
+        ctx.font = "12px system-ui, sans-serif";
+        ctx.fillText("全程 0 次 CPU 拷贝：解码器 DMA 写入，GPU 直接采样", x0 + 150, dramY + 28);
+      }
+
+      // in-flight frame cards near BufferQueue
+      const qx = x0 + 1 * (nw + gap) + nw / 2 - 18;
+      for (let i = 0; i < params.queue; i++) {
+        ctx.fillStyle = labCssColor("--accent", "#3b5bdb");
+        ctx.globalAlpha = 0.18 + i * 0.12;
+        ctx.fillRect(qx + i * 12, 176, 34, 24);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = accent; ctx.lineWidth = 1;
+        ctx.strokeRect(qx + i * 12, 176, 34, 24);
+      }
+      ctx.fillStyle = muted;
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.fillText("在途帧 ×" + params.queue, qx - 14, 214);
+
+      const copies = isCopy ? 2 : 0;
+      const stageTexts = [
+        names[stageIdx],
+        owners[stageIdx],
+        copies + " 次",
+        isCopy ? "≈16.6 MB/帧" : "0",
+        "在途 " + params.queue + " 帧",
+        isCopy ? "是（代价已付）" : "否（GPU 专属 OES）",
+      ];
+      stageValues.forEach((node, i) => { node.textContent = stageTexts[i] || "—"; });
+      set("pipeCopies", copies + " 次");
+      set("pipeBw", isCopy ? "≈16.6 MB" : "0");
+      set("pipeQueue", params.queue + " 帧");
+      set("pipeCpu", isCopy ? "可读" : "不可读");
+      const state = $("labPipeState");
+      if (state) {
+        state.textContent = (isCopy ? "拷贝路径 · 2 次拷贝 / 16.6 MB" : "零拷贝 · 0 次拷贝") +
+          " · 阶段 " + (stageIdx + 1) + "/" + names.length + " " + names[stageIdx];
+      }
+    }
+
+    wireLabControls(params, inputs, PIPELINE_DEFAULTS, draw);
+    wireLabFooter(lab);
+    labRedraw = draw;
+    labDispose = () => { labRedraw = null; };
+    draw();
+  }
+
+  /* ---------- RenderGraph DAG lab ---------- */
+
+  const DAG_DEFAULTS = { bloom: true, tonemap: true, aliasing: false };
+  const DAG_PASSES = [
+    { id: "GBuffer", reads: [], writes: ["albedo", "depth"] },
+    { id: "Lighting", reads: ["albedo", "depth"], writes: ["hdr"] },
+    { id: "Bloom", reads: ["hdr"], writes: ["bloom"] },
+    { id: "Tonemap", reads: ["hdr", "bloom"], writes: ["ldr"] },
+  ];
+  const DAG_RESOURCES = { albedo: 4, depth: 4, hdr: 8, bloom: 8, ldr: 4 };
+  const DAG_SLOT_COLORS = ["#4c6ef5", "#2da44e", "#d97706", "#8250df"];
+
+  function renderDagLab(lab) {
+    if (labDispose) { labDispose(); labDispose = null; }
+    currentId = null;
+    renderToken++;
+    document.title = lab.title + " · 图形实验室";
+    els.breadcrumb.innerHTML =
+      '<span>图形实验室</span><span class="crumb-sep">/</span>' +
+      '<span class="crumb-current">' + escapeHtml(lab.title) + "</span>";
+    els.tocNav.innerHTML = "";
+
+    const lesson = LESSON_MAP.get(lab.lesson);
+    const stages = (lab.stages || []).map(labStageRow).join("");
+
+    els.content.innerHTML =
+      '<section class="lab-hero no-term">' +
+      '<span class="hero-eyebrow">交互实验 · ' + escapeHtml(lab.lesson || "独立") + "</span>" +
+      "<h1>" + escapeHtml(lab.title) + "</h1><p>" + escapeHtml(lab.subtitle) + "</p>" +
+      '<div class="lab-hero-meta">' +
+      (lesson ? '<a href="' + courseRoute(lesson.id) + '">← ' + escapeHtml(lesson.id + " " + lesson.title) + "</a>" : "") +
+      labDocsLinks(lab) + '<a href="' + labRoute() + '">全部实验</a></div></section>' +
+      '<section class="lab-section no-term"><h2>图编译</h2>' +
+      '<div class="lab-formula">$$' + lab.formula + '$$</div>' +
+      '<p class="lab-hint">Pass 只声明读写意图：拓扑排序、barrier 插入与 transient 显存复用全部发生在编译期。开关 Pass，观察依赖边与显存峰值的联动。</p></section>' +
+      '<section class="lab-section no-term"><h2>交互画布</h2><div class="lab-layout">' +
+      '<div class="lab-panel lab-controls">' +
+      '<div class="lab-panel-head"><strong>参数</strong><button type="button" class="lab-reset" id="labReset">重置</button></div>' +
+      '<label class="lab-control lab-check"><input type="checkbox" data-param="bloom" checked /><span>Bloom Pass（读 hdr / 写 bloom）</span></label>' +
+      '<label class="lab-control lab-check"><input type="checkbox" data-param="tonemap" checked /><span>Tonemap Pass（读 hdr+bloom / 写 ldr）</span></label>' +
+      '<label class="lab-control lab-check"><input type="checkbox" data-param="aliasing" /><span>启用内存 aliasing（transient 复用）</span></label>' +
+      '<div class="lab-clip-state" id="labDagState">—</div></div>' +
+      '<div class="lab-panel lab-view">' +
+      '<canvas class="lab-canvas" id="labCanvas" width="640" height="440" aria-label="RenderGraph DAG 与资源生命周期"></canvas>' +
+      '<div class="lab-canvas-legend"><span>上：Pass DAG</span><span>下：资源生命周期条</span><span>同色条 = 同一 aliasing 槽</span></div>' +
+      "</div></div></section>" +
+      '<section class="lab-section no-term"><h2>逐阶段看图编译</h2>' +
+      '<div class="lab-stage-grid">' + stages + "</div></section>" +
+      '<section class="lab-section no-term"><h2>编译结果读数</h2><div class="lab-matrix-grid">' +
+      '<div class="lab-matrix"><h3>依赖边</h3><pre id="dagEdges"></pre><small>写→读 / 写→写</small></div>' +
+      '<div class="lab-matrix"><h3>barrier</h3><pre id="dagBarriers"></pre><small>编译期自动插入</small></div>' +
+      '<div class="lab-matrix"><h3>峰值显存</h3><pre id="dagPeak"></pre><small>无 aliasing → aliasing</small></div>' +
+      '<div class="lab-matrix"><h3>aliasing 节省</h3><pre id="dagSave"></pre><small>峰值显存下降比例</small></div>' +
+      "</div></section>" +
+      labFooterHtml(lab) +
+      '<section class="lab-section no-term"><h2>声明式用法骨架</h2><pre><code class="language-cpp">' +
+      escapeHtml(lab.code || "") + "</code></pre></section>" +
+      '<section class="lab-section no-term"><h2>关键术语</h2><div class="lesson-terms">' + labTermChips(lab) + "</div>" +
+      '<p class="lab-note-text">' + icon("info") + " " + escapeHtml(lab.note || "") + "</p></section>";
+
+    renderMath(els.content);
+    enhanceCode(els.content, renderToken);
+    buildToc(els.content);
+    window.scrollTo({ top: 0, behavior: "auto" });
+    updateProgress();
+
+    const canvas = $("labCanvas");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const params = Object.assign({}, DAG_DEFAULTS);
+    const inputs = Array.from(els.content.querySelectorAll("[data-param]"));
+    const stageValues = Array.from(els.content.querySelectorAll("[data-stage-value]"));
+    const set = (id, txt) => { const el = $(id); if (el) el.textContent = txt; };
+
+    function enabledPasses() {
+      const on = [DAG_PASSES[0], DAG_PASSES[1]];
+      if (params.bloom) on.push(DAG_PASSES[2]);
+      if (params.tonemap) on.push(DAG_PASSES[3]);
+      return on;
+    }
+
+    function analyze() {
+      const on = enabledPasses();
+      const edges = [];
+      on.forEach((a, i) => {
+        on.forEach((b, j) => {
+          if (i >= j) return;
+          const shared = b.reads.filter((r) => a.writes.includes(r));
+          const waw = b.writes.filter((r) => a.writes.includes(r));
+          if (shared.length || waw.length) edges.push([i, j, shared, waw]);
+        });
+      });
+      const lifetimes = [];
+      Object.keys(DAG_RESOURCES).forEach((r) => {
+        let first = -1, last = -1;
+        on.forEach((p, idx) => {
+          if (p.writes.includes(r) && (first < 0 || idx < first)) first = idx;
+          if ((p.reads.includes(r) || p.writes.includes(r)) && idx > last) last = idx;
+        });
+        if (first >= 0) lifetimes.push({ name: r, size: DAG_RESOURCES[r], first: first, last: last });
+      });
+      const peakRaw = lifetimes.reduce((sum, r) => sum + r.size, 0);
+      // greedy interval partitioning: slot cost = max size in slot
+      const slots = [];
+      lifetimes
+        .slice()
+        .sort((a, b) => a.first - b.first || a.last - b.last)
+        .forEach((r) => {
+          const slot = slots.find((s) => s.freeFrom <= r.first);
+          if (slot) {
+            slot.size = Math.max(slot.size, r.size);
+            slot.freeFrom = r.last + 1;
+            slot.items.push(r.name);
+          } else {
+            slots.push({ size: r.size, freeFrom: r.last + 1, items: [r.name] });
+          }
+        });
+      const peakAliased = slots.reduce((sum, s) => sum + s.size, 0);
+      lifetimes.forEach((r) => {
+        const slot = slots.find((s) => s.items.includes(r.name));
+        r.slot = slot ? slots.indexOf(slot) : 0;
+      });
+      return { on: on, edges: edges, lifetimes: lifetimes, peakRaw: peakRaw, peakAliased: peakAliased, slots: slots };
+    }
+
+    function draw() {
+      const W = canvas.width, H = canvas.height;
+      const bg = labCssColor("--bg", "#ffffff");
+      const border = labCssColor("--border-strong", "#d0d7de");
+      const muted = labCssColor("--text-subtle", "#8c959f");
+      const accent = labCssColor("--accent", "#3b5bdb");
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = border; ctx.lineWidth = 1;
+      ctx.setLineDash([4, 5]); ctx.strokeRect(8, 8, W - 16, H - 16); ctx.setLineDash([]);
+
+      const result = analyze();
+      const colW = 140, x0 = 36, boxW = 116, boxH = 58, yPass = 48;
+
+      // DAG edges
+      ctx.strokeStyle = muted; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.7;
+      result.edges.forEach(([i, j, shared, waw]) => {
+        const x1 = x0 + i * colW + boxW, y1 = yPass + boxH / 2;
+        const x2 = x0 + j * colW, y2 = yPass + boxH / 2;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        if (j - i > 1) {
+          const mid = (x1 + x2) / 2;
+          ctx.bezierCurveTo(mid, y1 - 34, mid, y2 - 34, x2, y2);
+        } else {
+          ctx.lineTo(x2, y2);
+        }
+        ctx.stroke();
+        const label = (shared.length ? shared.join("/") : "") + (waw.length ? " W→W" : "");
+        if (label) {
+          ctx.fillStyle = muted;
+          ctx.font = "10px system-ui, sans-serif";
+          ctx.fillText(label, (x1 + x2) / 2 - 24, y1 - 6);
+        }
+      });
+      ctx.globalAlpha = 1;
+
+      // pass boxes
+      const enabledIndex = (p) => result.on.indexOf(p);
+      DAG_PASSES.forEach((p) => {
+        const idx = enabledIndex(p);
+        const x = x0 + idx * colW;
+        const on = idx >= 0;
+        ctx.globalAlpha = on ? 1 : 0.35;
+        ctx.fillStyle = on ? bg : bg;
+        ctx.strokeStyle = on ? accent : muted;
+        ctx.setLineDash(on ? [] : [5, 4]);
+        ctx.lineWidth = on ? 2 : 1.2;
+        ctx.fillRect(x, yPass, boxW, boxH);
+        ctx.strokeRect(x, yPass, boxW, boxH);
+        ctx.setLineDash([]);
+        ctx.fillStyle = labCssColor("--text", "#1f2328");
+        ctx.font = "600 13px system-ui, sans-serif";
+        ctx.fillText(p.id, x + 12, yPass + 24);
+        ctx.fillStyle = muted;
+        ctx.font = "10px system-ui, sans-serif";
+        const io = (p.writes.length ? "写 " + p.writes.join(" ") : "") + (p.reads.length ? (p.writes.length ? " · " : "") + "读 " + p.reads.join(" ") : "");
+        ctx.fillText(on ? io : "已关闭", x + 12, yPass + 42);
+        ctx.globalAlpha = 1;
+      });
+
+      // resource lifetime bars
+      const barY0 = 236, barH = 22, rowStep = 32;
+      ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillStyle = muted;
+      ctx.fillText("资源生命周期（列 = Pass 槽位）", x0, barY0 - 12);
+      result.lifetimes.forEach((r, i) => {
+        const y = barY0 + i * rowStep;
+        ctx.fillStyle = labCssColor("--text", "#1f2328");
+        ctx.font = "600 11px system-ui, sans-serif";
+        ctx.fillText(r.name + " " + r.size + "MB", x0, y + barH - 7);
+        const bx = x0 + 92 + r.first * colW;
+        const bwid = (r.last - r.first + 1) * colW - 10;
+        const color = params.aliasing ? DAG_SLOT_COLORS[r.slot % DAG_SLOT_COLORS.length] : accent;
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = color;
+        ctx.fillRect(bx, y, bwid, barH);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        ctx.strokeRect(bx, y, bwid, barH);
+        if (params.aliasing) {
+          ctx.fillStyle = color;
+          ctx.font = "600 10px system-ui, sans-serif";
+          ctx.fillText("槽 " + (r.slot + 1), bx + 6, y + barH - 7);
+        }
+      });
+
+      const saving = result.peakRaw ? ((result.peakRaw - result.peakAliased) / result.peakRaw) * 100 : 0;
+      const chain = result.on.map((p) => p.id).join(" → ");
+      const stageTexts = [
+        chain,
+        result.edges.length + " 条",
+        result.edges.length + " 个",
+        result.peakRaw + " MB",
+        result.peakAliased + " MB",
+        params.aliasing ? saving.toFixed(1) + "%" : "—",
+      ];
+      stageValues.forEach((node, i) => { node.textContent = stageTexts[i] || "—"; });
+      set("dagEdges", result.edges.length + " 条");
+      set("dagBarriers", result.edges.length + " 个");
+      set("dagPeak", result.peakRaw + " → " + result.peakAliased + " MB");
+      set("dagSave", params.aliasing ? saving.toFixed(1) + "%" : "未启用");
+      const state = $("labDagState");
+      if (state) {
+        state.textContent = "Pass " + result.on.length + "/4 · 边 " + result.edges.length +
+          " · 峰值 " + result.peakRaw + " MB" + (params.aliasing ? " → " + result.peakAliased + " MB（- " + saving.toFixed(1) + "%）" : "");
+      }
+    }
+
+    wireLabControls(params, inputs, DAG_DEFAULTS, draw);
+    wireLabFooter(lab);
+    labRedraw = draw;
+    labDispose = () => { labRedraw = null; };
+    draw();
+  }
+
   /* ---------------- sidebar ---------------- */
 
   function buildSidebar() {
@@ -2280,6 +3311,8 @@
     els.content.insertBefore(meta, els.content.firstChild);
     buildTermPanel(doc);
     buildCourseStrip(doc);
+    const fbCtx = feedbackContextForDoc(doc.id);
+    if (fbCtx.lesson) mountFeedbackPanel(fbCtx.lesson, fbCtx.quiz);
 
     await enhanceCode(els.content, token);
     if (token !== renderToken) return;
@@ -2875,6 +3908,57 @@
         event.preventDefault();
         toggleLessonDone(toggle.dataset.lesson);
         renderLesson(toggle.dataset.lesson);
+        return;
+      }
+      // Local feedback loop: submit / export / clear. Never preventDefault on
+      // unrelated clicks so term tooltips and links keep working.
+      const fbSubmit = event.target.closest("[data-fb-submit]");
+      if (fbSubmit) {
+        event.preventDefault();
+        const panel = fbSubmit.closest(".feedback-panel");
+        const val = (k) => (panel.querySelector('[data-fb="' + k + '"]') || {}).value || "";
+        const type = val("type") || "confusion";
+        const lesson = val("lesson").trim();
+        const quiz = val("quiz").trim();
+        const claims = val("claims").split(/[,，\s]+/).map((s) => s.trim()).filter(Boolean);
+        const note = val("note").trim();
+        if (!note) {
+          panel.querySelector("[data-fb-status]").textContent = "请先填写说明。";
+          return;
+        }
+        const entry = { type: type, note: note, ts: new Date().toISOString() };
+        if (lesson) entry.lesson = lesson;
+        if (quiz) entry.quiz = quiz;
+        if (claims.length) entry.claim_ids = claims;
+        const okSaved = addFeedbackEntry(entry);
+        const status = panel.querySelector("[data-fb-status]");
+        panel.querySelector('[data-fb="note"]').value = "";
+        status.textContent = okSaved
+          ? "已加入本地队列（共 " + getFeedbackQueue().length + " 条），可点击“导出 JSON”。"
+          : "本地存储不可用（file:// 环境可能禁用），反馈未保存。";
+        const countEl = panel.querySelector(".feedback-count");
+        if (countEl) countEl.textContent = getFeedbackQueue().length + " 条待导出";
+        const exp = panel.querySelector("[data-fb-export]");
+        if (exp) exp.textContent = "导出 JSON（" + getFeedbackQueue().length + " 条）";
+        return;
+      }
+      const fbExport = event.target.closest("[data-fb-export]");
+      if (fbExport) {
+        event.preventDefault();
+        const res = exportFeedback();
+        const status = fbExport.closest(".feedback-panel").querySelector("[data-fb-status]");
+        status.textContent = res.msg;
+        return;
+      }
+      const fbClear = event.target.closest("[data-fb-clear]");
+      if (fbClear) {
+        event.preventDefault();
+        if (saveFeedbackQueue([])) {
+          const panel = fbClear.closest(".feedback-panel");
+          panel.querySelector("[data-fb-status]").textContent = "本地队列已清空。";
+          panel.querySelector(".feedback-count").textContent = "0 条待导出";
+          panel.querySelector("[data-fb-export]").textContent = "导出 JSON（0 条）";
+        }
         return;
       }
       const node = event.target.closest(".term");

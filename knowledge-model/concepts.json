@@ -1,0 +1,373 @@
+{
+  "version": "1.0",
+  "updated": "2026-11-18",
+  "note": "概念级关系模型。定义以 glossary.json 为单一来源；本文件只存 ID/引用/关系。",
+  "concepts": [
+    {
+      "id": "K-NV12",
+      "name": "NV12",
+      "glossary_term": "NV12 / NV21",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md",
+      "route": "#/glossary?term=NV12",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-YUV420",
+          "source_claim": "V02"
+        }
+      ]
+    },
+    {
+      "id": "K-YUV420",
+      "name": "YUV420",
+      "glossary_term": "YUV 4:2:0",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md",
+      "route": "#/glossary?term=YUV",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-OES",
+          "source_claim": "V12"
+        },
+        {
+          "type": "contrast_with",
+          "target": "K-RGB",
+          "source_claim": "V12"
+        }
+      ]
+    },
+    {
+      "id": "K-RGB",
+      "name": "RGB",
+      "glossary_term": "Gamma",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md",
+      "route": "#/glossary?term=RGB",
+      "relations": [
+        {
+          "type": "contrast_with",
+          "target": "K-YUV420"
+        }
+      ]
+    },
+    {
+      "id": "K-PTS",
+      "name": "PTS",
+      "glossary_term": "PTS",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md#",
+      "route": "#/glossary?term=PTS",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-SYNC"
+        },
+        {
+          "type": "contrast_with",
+          "target": "K-DTS",
+          "source_claim": "V03"
+        }
+      ]
+    },
+    {
+      "id": "K-DTS",
+      "name": "DTS",
+      "glossary_term": "DTS",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md",
+      "route": "#/glossary?term=DTS",
+      "relations": [
+        {
+          "type": "contrast_with",
+          "target": "K-PTS",
+          "source_claim": "V03"
+        }
+      ]
+    },
+    {
+      "id": "K-SYNC",
+      "name": "音视频同步",
+      "glossary_term": "AV Sync",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md",
+      "route": "#/glossary?term=AV%20Sync",
+      "relations": [
+        {
+          "type": "used_by",
+          "target": "K-SURFACE",
+          "source_claim": "V10"
+        }
+      ]
+    },
+    {
+      "id": "K-STRIDE",
+      "name": "Stride",
+      "glossary_term": "Stride",
+      "layer": "L1",
+      "definition_ref": "01-基础理论/音视频基础理论.md#stride-计算公式",
+      "route": "#/glossary?term=Stride",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-DMA",
+          "source_claim": "V02"
+        }
+      ]
+    },
+    {
+      "id": "K-DEMUX",
+      "name": "解封装",
+      "glossary_term": "Demux",
+      "layer": "L2",
+      "definition_ref": "02-解码与播放链路/解码与播放链路.md",
+      "route": "#/glossary?term=Demux",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-DECODE",
+          "source_claim": "V01"
+        }
+      ]
+    },
+    {
+      "id": "K-DECODE",
+      "name": "硬件解码",
+      "glossary_term": "MediaCodec",
+      "layer": "L2",
+      "definition_ref": "02-解码与播放链路/解码与播放链路.md",
+      "route": "#/glossary?term=MediaCodec",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-SURFACE",
+          "source_claim": "V01"
+        }
+      ]
+    },
+    {
+      "id": "K-SURFACE",
+      "name": "Surface",
+      "glossary_term": "SurfaceTexture",
+      "layer": "L2",
+      "definition_ref": "02-解码与播放链路/解码与播放链路.md",
+      "route": "#/glossary?term=Surface",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-OES"
+        }
+      ]
+    },
+    {
+      "id": "K-OES",
+      "name": "OES 外部纹理",
+      "glossary_term": "OES",
+      "layer": "L2",
+      "definition_ref": "02-解码与播放链路/解码与播放链路.md",
+      "route": "#/glossary?term=OES",
+      "relations": [
+        {
+          "type": "used_by",
+          "target": "K-ZEROCOPY",
+          "source_claim": "V04"
+        }
+      ]
+    },
+    {
+      "id": "K-ZEROCOPY",
+      "name": "零拷贝",
+      "glossary_term": "零拷贝",
+      "layer": "L4",
+      "definition_ref": "04-跨平台与高性能架构/跨平台与高性能架构.md#11-零拷贝的本质",
+      "route": "#/glossary?term=零拷贝",
+      "relations": [
+        {
+          "type": "contrast_with",
+          "target": "K-COPY",
+          "source_claim": "V05"
+        },
+        {
+          "type": "prerequisite_of",
+          "target": "K-RENDERGRAPH",
+          "source_claim": "V05"
+        }
+      ]
+    },
+    {
+      "id": "K-COPY",
+      "name": "逐帧拷贝",
+      "glossary_term": "零拷贝",
+      "layer": "L2",
+      "definition_ref": "02-解码与播放链路/解码与播放链路.md",
+      "route": "#/glossary?term=零拷贝",
+      "relations": [
+        {
+          "type": "contrast_with",
+          "target": "K-ZEROCOPY",
+          "source_claim": "V05"
+        }
+      ]
+    },
+    {
+      "id": "K-DRAM",
+      "name": "DRAM",
+      "glossary_term": "DRAM",
+      "layer": "L1",
+      "definition_ref": "00-导航与索引/概念引入说明.md#11-三个词属于三个维度",
+      "route": "#/glossary?term=DRAM",
+      "relations": [
+        {
+          "type": "contrast_with",
+          "target": "K-DMA",
+          "source_claim": "E01"
+        },
+        {
+          "type": "part_of",
+          "target": "K-DEVICE"
+        }
+      ]
+    },
+    {
+      "id": "K-DMA",
+      "name": "DMA",
+      "glossary_term": "DMA",
+      "layer": "L2",
+      "definition_ref": "00-导航与索引/概念引入说明.md#11-三个词属于三个维度",
+      "route": "#/glossary?term=DMA",
+      "relations": [
+        {
+          "type": "used_by",
+          "target": "K-ZEROCOPY",
+          "source_claim": "E01"
+        },
+        {
+          "type": "contrast_with",
+          "target": "K-PCIE"
+        }
+      ]
+    },
+    {
+      "id": "K-PCIE",
+      "name": "PCIe",
+      "glossary_term": "PCIe",
+      "layer": "L4",
+      "definition_ref": "00-导航与索引/概念引入说明.md#11-三个词属于三个维度",
+      "route": "#/glossary?term=PCIe",
+      "relations": [
+        {
+          "type": "contrast_with",
+          "target": "K-DMA",
+          "source_claim": "E02"
+        },
+        {
+          "type": "part_of",
+          "target": "K-DEVICE"
+        }
+      ]
+    },
+    {
+      "id": "K-DEVICE",
+      "name": "平台形态",
+      "glossary_term": "显存",
+      "layer": "L4",
+      "definition_ref": "00-导航与索引/概念引入说明.md#11-三个词属于三个维度",
+      "route": "#/glossary?term=显存",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-PCIE"
+        }
+      ]
+    },
+    {
+      "id": "K-FBO",
+      "name": "FBO 离屏渲染",
+      "glossary_term": "FBO",
+      "layer": "L3",
+      "definition_ref": "03-图形与GPU工程/图形与GPU工程.md#5-fbo与多pass特效链",
+      "route": "#/glossary?term=FBO",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-PASS",
+          "source_claim": "E03"
+        }
+      ]
+    },
+    {
+      "id": "K-PASS",
+      "name": "Pass",
+      "glossary_term": "Pass",
+      "layer": "L3",
+      "definition_ref": "00-导航与索引/概念引入说明.md#2-pass-rendergraph为什么学渲染时没遇到",
+      "route": "#/glossary?term=Pass",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-RENDERPASS",
+          "source_claim": "E03"
+        }
+      ]
+    },
+    {
+      "id": "K-RENDERPASS",
+      "name": "RenderPass",
+      "glossary_term": "RenderPass",
+      "layer": "L4",
+      "definition_ref": "04-跨平台与高性能架构/显式API与同步原语.md#6-renderpass-subpass-load-store",
+      "route": "#/glossary?term=RenderPass",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-RENDERGRAPH",
+          "source_claim": "E04"
+        }
+      ]
+    },
+    {
+      "id": "K-RENDERGRAPH",
+      "name": "RenderGraph",
+      "glossary_term": "RenderGraph",
+      "layer": "L4",
+      "definition_ref": "04-跨平台与高性能架构/跨平台与高性能架构.md#2-rendergraph-架构设计",
+      "route": "#/glossary?term=RenderGraph",
+      "relations": [
+        {
+          "type": "used_by",
+          "target": "K-ZEROCOPY",
+          "source_claim": "C06"
+        }
+      ]
+    },
+    {
+      "id": "K-MVP",
+      "name": "MVP 矩阵",
+      "glossary_term": "MVP",
+      "layer": "L7",
+      "definition_ref": "07-3D渲染与算法实现/3D变换与坐标空间.md",
+      "route": "#/course/L13",
+      "relations": [
+        {
+          "type": "prerequisite_of",
+          "target": "K-PBR"
+        }
+      ]
+    },
+    {
+      "id": "K-PBR",
+      "name": "PBR",
+      "glossary_term": "PBR",
+      "layer": "L7",
+      "definition_ref": "07-3D渲染与算法实现/光照材质与阴影.md",
+      "route": "#/glossary?term=PBR",
+      "relations": [
+        {
+          "type": "used_by",
+          "target": "K-RENDERGRAPH"
+        }
+      ]
+    }
+  ]
+}

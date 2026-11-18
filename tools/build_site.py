@@ -178,6 +178,18 @@ def truncate(text: str, limit: int = 140) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
+def strip_frontmatter(markdown: str) -> tuple[str, str]:
+    """Split a leading YAML frontmatter block from the body.
+
+    Returns (body, frontmatter). Body keeps everything after the closing
+    ``---`` line; when no frontmatter exists, body is the original text.
+    """
+    match = re.match(r"\A---\s*\n.*?\n---\s*\n", markdown, re.DOTALL)
+    if not match:
+        return markdown, ""
+    return markdown[match.end():], match.group(0)
+
+
 def extract_title(markdown: str, fallback: str) -> str:
     match = re.search(r"^#\s+(.+?)\s*$", markdown, re.MULTILINE)
     return match.group(1).strip() if match else fallback
@@ -428,6 +440,7 @@ def main() -> None:
         for path in ROOT.rglob("*.md")
         if ".git" not in path.parts
         and "web" not in path.parts
+        and "site-vitepress" not in path.parts
         and "node_modules" not in path.parts
         and ".workbuddy-ai" not in path.parts
     ]
@@ -447,6 +460,7 @@ def main() -> None:
         doc_path = relpath(path)
         key = section_key(doc_path)
         markdown = path.read_text(encoding="utf-8", errors="replace")
+        markdown, _frontmatter = strip_frontmatter(markdown)
         fallback = path.stem
         plain = plain_text(markdown)
         enriched, term_meta = augment_markdown(markdown, doc_path, term_entries, all_doc_ids)

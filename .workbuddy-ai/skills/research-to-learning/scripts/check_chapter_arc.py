@@ -14,11 +14,11 @@ from pathlib import Path
 
 # Each element is matched against headings (## ... ) or explicit marker lines.
 ELEMENTS = {
-    "hook": (r"问题钩子|从一个有趣的问题|为什么|开场", "hook / compelling question"),
-    "prerequisite": (r"前置知识|前置|先读", "prerequisite"),
-    "concepts": (r"核心概念|概念|原理", "concepts"),
+    "hook": (r"问题钩子|从一个有趣的问题|为什么|开场|本章回答|一个问题", "hook / compelling question"),
+    "prerequisite": (r"前置知识|前置|先读|前提", "prerequisite"),
+    "concepts": (r"核心概念|概念|原理|直观认识", "concepts"),
     "bridge": (r"通往下一章|本章.*下一章|桥|承上启下", "bridge to next chapter"),
-    "practice": (r"实践|动手|练习|试着", "practice"),
+    "practice": (r"实践|动手|练习|试着|实验", "practice"),
 }
 
 

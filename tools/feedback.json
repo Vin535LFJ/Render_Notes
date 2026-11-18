@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "_note": "Local learner feedback sink. Entries are appended by the user by exporting feedback from the offline site (web/assets/app.js) and pasting them here. No personal data. No network upload. Never auto-mutates claim or lesson state.",
+  "schema": {
+    "lesson": "L## id from tools/course.json (optional)",
+    "quiz": "lesson id of a pilot quiz (optional)",
+    "claim_ids": "list of claim ids from evidence/claim-ledger.json",
+    "type": "confusion | gap | rating",
+    "note": "free text",
+    "ts": "ISO-8601 timestamp"
+  },
+  "entries": []
+}

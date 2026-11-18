@@ -207,6 +207,265 @@
       ],
       "code": "// Cook-Torrance 镜面 BRDF（教学近似，逐像素在 CPU 上算）\nfloat D_GGX(float NoH, float rough) {\n  float a = rough * rough;\n  float a2 = a * a;\n  float d = NoH * NoH * (a2 - 1.0) + 1.0;\n  return a2 / (PI * d * d);\n}\nfloat F_Schlick(float VoH, vec3 F0) {\n  return F0 + (1.0 - F0) * pow(1.0 - VoH, 5.0);\n}\nfloat G_Smith(float NoL, float NoV, float rough) {\n  float k = pow(rough + 1.0, 2.0) / 8.0;\n  float gl = NoL / (NoL * (1.0 - k) + k);\n  float gv = NoV / (NoV * (1.0 - k) + k);\n  return gl * gv;\n}\nvec3 spec = D * G * F / (4.0 * NoL * NoV);\nvec3 kd = (1.0 - metallic);\nvec3 diffuse = kd * albedo / PI;\n// 出射 = (diffuse + spec) * radiance * NoL；再走色调映射",
       "note": "教学近似 / 归一化示意：用 Canvas 2D 在粗网格上逐像素计算 Cook-Torrance 的 D/G/F，帮助建立「参数 → 数学 → 画面」的直觉。不是物理精确的离线渲染器，也不代表行业标准实现。"
+    },
+    {
+      "id": "yuv-to-rgb",
+      "type": "yuv",
+      "title": "YUV → RGB 转换与采样格式实验",
+      "subtitle": "拖动 Y/U/V，看一个 2×2 像素块如何被下采样、存储并还原成颜色",
+      "lesson": "L01",
+      "docs": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "formula": "R = Y + 1.402\\,(V-128),\\;\\; G = Y - 0.344\\,(U-128) - 0.714\\,(V-128),\\;\\; B = Y + 1.772\\,(U-128)",
+      "stages": [
+        {
+          "name": "采样格式",
+          "desc": "4:4:4 / 4:2:2 / 4:2:0 决定 U、V 被几个像素共享"
+        },
+        {
+          "name": "亮度独立",
+          "desc": "每个像素都有自己的 Y，人眼对亮度最敏感"
+        },
+        {
+          "name": "字节布局",
+          "desc": "2×2 块 = 4Y + kU + kV，k 由采样格式决定"
+        },
+        {
+          "name": "块字节数",
+          "desc": "与 RGBA8888 的 16 字节对比"
+        },
+        {
+          "name": "空间节省",
+          "desc": "4:2:0 相对 RGBA8888 节省 62.5%"
+        },
+        {
+          "name": "还原颜色",
+          "desc": "BT.601 公式把 YUV 还原成 RGB（有损）"
+        }
+      ],
+      "terms": [
+        "YUV 4:2:0",
+        "NV12 / NV21",
+        "Stride",
+        "色彩空间"
+      ],
+      "tasks": [
+        "把 U、V 拉到 128 之外，观察色度如何给 4 个像素同时染色。",
+        "切换 4:4:4 → 4:2:0，看字节布局从 12 B 收缩到 6 B。",
+        "给 4 个像素不同的 Y，确认亮度始终逐像素独立。",
+        "把 Y 拉到 235 以上 / 16 以下，观察有限范围（limited range）造成的裁剪。"
+      ],
+      "code": "// GLSL ES 3.x：OES 纹理采样后做 YUV → RGB（BT.601 limited range 近似）\nuniform sampler2D uTexture;      // GL_TEXTURE_EXTERNAL_OES\nin vec2 vTexCoord;\nout vec4 fragColor;\n\nvoid main() {\n  vec3 yuv = texture(uTexture, vTexCoord).rgb;\n  float y  = yuv.r;\n  float u  = yuv.g - 0.5;\n  float v  = yuv.b - 0.5;\n  vec3 rgb;\n  rgb.r = y + 1.402 * v;\n  rgb.g = y - 0.344 * u - 0.714 * v;\n  rgb.b = y + 1.772 * u;\n  fragColor = vec4(clamp(rgb, 0.0, 1.0), 1.0);\n}",
+      "note": "本实验用 full-range BT.601 近似公式做教学演示；真实 Android 硬件解码链路多为 limited range，且不同色彩空间（BT.601/709/2020）系数不同，矩阵错误会整体偏色。",
+      "selfTest": [
+        {
+          "q": "4:2:0 的 2×2 像素块为什么只需要 6 字节？",
+          "a": "亮度逐像素独立需要 4 个 Y；色度在水平、垂直两个方向都减半，整块共享 1 个 U 和 1 个 V，共 4+1+1=6 字节，相对 RGBA8888 的 16 字节节省 62.5%。"
+        },
+        {
+          "q": "NV12 和 NV21 的差异是什么？",
+          "a": "两者都是半平面（Y 平面 + UV 交错平面），区别只在 UV 平面的交错顺序：NV12 是 UVUV…，NV21 是 VUVU…。选择取决于编码器/硬件的固定约定。"
+        },
+        {
+          "q": "忽略 stride 会出现什么现象？为什么？",
+          "a": "画面逐行错位、出现斜纹花屏。存储行宽 stride ≥ 图像宽 × 每像素字节数，若按图像宽读每行，从第二行开始起始地址就错了。"
+        }
+      ]
+    },
+    {
+      "id": "pts-dts-timeline",
+      "type": "timeline",
+      "title": "PTS / DTS 与重排序实验",
+      "subtitle": "拖动解码指针，看 B 帧如何让解码顺序和显示顺序分道扬镳",
+      "lesson": "L02",
+      "docs": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "formula": "\\text{decode: } I_0 P_0 B_0 B_1 P_1 \\cdots \\qquad \\text{display: } I_0 B_0 B_1 P_0 B_2 B_3 P_1 \\cdots",
+      "stages": [
+        {
+          "name": "GOP 序列",
+          "desc": "I 帧独立解码，P/B 帧依赖参考帧"
+        },
+        {
+          "name": "解码顺序 DTS",
+          "desc": "解码器必须先解出 B 帧的参考帧"
+        },
+        {
+          "name": "重排序缓冲",
+          "desc": "已解码但还没轮到显示的帧在这里等待"
+        },
+        {
+          "name": "显示顺序 PTS",
+          "desc": "按播放时间戳顺序上屏"
+        },
+        {
+          "name": "同步约束",
+          "desc": "DTS ≤ PTS 恒成立；音频通常是主时钟"
+        },
+        {
+          "name": "渲染提交",
+          "desc": "显示帧的时刻决定是否丢帧/等待"
+        }
+      ],
+      "terms": [
+        "PTS",
+        "DTS"
+      ],
+      "tasks": [
+        "把解码指针从 I0 逐帧推到 P0，观察重排序缓冲何时出现、何时清空。",
+        "对比解码轨道与显示轨道的箭头，理解 B 帧为什么必须等待参考帧。",
+        "查看当前帧的 PTS−DTS，确认延迟来自哪里。",
+        "切换 GOP 模式，观察无 B 帧时两条轨道是否重合。"
+      ],
+      "code": "// 播放器主循环的音视频同步（简化伪代码）\nwhile (!stopped) {\n  Packet pkt = demuxer.read();          // 按 DTS 顺序送入解码器\n  Frame frame = decoder.decode(pkt);    // 解码输出已按 DTS 排好\n  reorderBuffer.push(frame);            // 按 PTS 重新排序\n\n  double audioClock = audioPlayer.pts();\n  Frame next = reorderBuffer.peek();\n  if (next.pts <= audioClock) {\n    render(next);                        // 视频 PTS 追上主时钟才上屏\n    reorderBuffer.pop();\n  } else {\n    sleepFor(next.pts - audioClock);     // 提前了就等待\n  }\n}",
+      "note": "真实解码器的输入顺序由码流 DTS 决定，输出顺序由编解码标准规定；本实验展示的是 IBBP GOP 下的经典 I/P/B 重排。",
+      "selfTest": [
+        {
+          "q": "为什么解码顺序和显示顺序会不同？",
+          "a": "B 帧是双向预测，需要后面的 P/I 帧先解码出来作参考。所以码流里 P 帧排在它所参考的 B 帧之前（DTS），而播放按画面时间（PTS）进行，两个顺序因此分离。"
+        },
+        {
+          "q": "重排序缓冲的作用是什么？",
+          "a": "缓存已解码但尚未到达显示时间的帧，让播放器能按 PTS 顺序出帧。缓冲深度至少要容纳 GOP 中连续 B 帧的数量。"
+        },
+        {
+          "q": "如果音频 PTS 领先视频，播放器通常会怎么做？",
+          "a": "以音频为主时钟时，视频等到自己的 PTS 追上音频时钟才渲染；若视频持续落后（如解码太慢），只能丢帧追齐，否则声音会被拖慢。"
+        }
+      ]
+    },
+    {
+      "id": "frame-pipeline",
+      "type": "pipeline",
+      "title": "解码帧到纹理的所有权迁移实验",
+      "subtitle": "逐阶段推进一帧，看 GraphicBuffer 的所有权在哪里切换、拷贝发生在哪里",
+      "lesson": "L06",
+      "docs": [
+        "02-解码与播放链路/解码与播放链路.md"
+      ],
+      "formula": "\\text{解码器} \\to \\text{BufferQueue} \\to \\text{SurfaceTexture} \\to \\text{OES 纹理} \\to \\text{Effect Pass} \\to \\text{显示}",
+      "stages": [
+        {
+          "name": "解码器输出",
+          "desc": "硬件解码器写完一帧 GraphicBuffer"
+        },
+        {
+          "name": "BufferQueue",
+          "desc": "解码器与消费方之间传递缓冲区所有权"
+        },
+        {
+          "name": "SurfaceTexture",
+          "desc": "把 GraphicBuffer 绑定为 GL_TEXTURE_EXTERNAL_OES"
+        },
+        {
+          "name": "OES 纹理采样",
+          "desc": "GPU 直接采样，像素不经过 CPU"
+        },
+        {
+          "name": "Effect Pass",
+          "desc": "特效着色器消费纹理并画到自己的输出"
+        },
+        {
+          "name": "提交显示",
+          "desc": "SurfaceFlinger 合成后上屏"
+        }
+      ],
+      "terms": [
+        "零拷贝",
+        "SurfaceTexture",
+        "DMA",
+        "采样"
+      ],
+      "tasks": [
+        "逐阶段推进指针，观察每一步缓冲区的所有权在谁手上。",
+        "切换拷贝路径，看 CPU 拷回节点出现后帧管线多了哪两跳。",
+        "对比两条路径的每帧额外带宽（1080p RGBA ≈ 8.3 MB）。",
+        "把队列深度调到 1，理解为什么在途帧太少会导致解码器等待。"
+      ],
+      "code": "// 零拷贝消费：SurfaceTexture + OES（Java 侧骨架）\nSurfaceTexture st = new SurfaceTexture(texId);\nst.setOnFrameAvailableListener(st0 -> requestRender());\nSurface surface = new Surface(st);\nmediaCodec/surfaceDecoder.setInputSurface(surface);\n\n// GL 侧：外部纹理只能用 samplerExternalOES 采样\n// sampler2D 采样 OES 纹理是非法的 —— 这是纹理桥的常见坑\nuniform samplerExternalOES uTex;\n...",
+      "note": "拷贝路径示意 readPixels / 绘制到 Canvas 的 CPU 拷回：1080p RGBA8888 一帧约 8.3 MB，往返两次即 16.6 MB/帧的额外 DRAM 带宽，在移动端足以吃掉一帧预算。",
+      "selfTest": [
+        {
+          "q": "零拷贝路径上一帧数据被 CPU 拷贝了几次？",
+          "a": "理想情况下 0 次。解码器通过 DMA 直接写入 GraphicBuffer，SurfaceTexture 把它绑成 OES 纹理后只有 GPU 采样，CPU 全程不触碰像素数据。"
+        },
+        {
+          "q": "为什么 OES 纹理不能用 sampler2D 采样？",
+          "a": "GL_TEXTURE_EXTERNAL_OES 是特殊的外部纹理目标，YUV 布局、tile 格式对 GL 通用采样器不可见，语言层必须显式声明 samplerExternalOES，编译器才会生成正确的寻址指令。"
+        },
+        {
+          "q": "BufferQueue 的队列深度意味着什么？",
+          "a": "同时可容纳的在途帧数。太浅会让解码器和消费方互相等待（丢吞吐），太深会占用更多显存并增大端到端延迟，常见取值 2–4。"
+        }
+      ]
+    },
+    {
+      "id": "rendergraph-dag",
+      "type": "dag",
+      "title": "RenderGraph：依赖、barrier 与显存复用实验",
+      "subtitle": "开关 Pass，看 DAG 如何自动插入 barrier、aliasing 如何压低峰值显存",
+      "lesson": "L11",
+      "docs": [
+        "04-跨平台与高性能架构/跨平台与高性能架构.md"
+      ],
+      "formula": "G = (P, E),\\;\\; \\text{barrier} = \\text{compile}(G),\\;\\; \\text{peak} = \\text{alias}(\\text{lifetimes})",
+      "stages": [
+        {
+          "name": "声明 Pass",
+          "desc": "每个 Pass 声明读写哪些资源，不手动建 barrier"
+        },
+        {
+          "name": "依赖边",
+          "desc": "写→读（消费者）与写→写（顺序）构成 DAG"
+        },
+        {
+          "name": "拓扑排序",
+          "desc": "编译期确定执行顺序"
+        },
+        {
+          "name": "barrier 插入",
+          "desc": "在资源状态切换处自动插入同步"
+        },
+        {
+          "name": "内存 aliasing",
+          "desc": "生命周期不重叠的资源共用一块显存"
+        },
+        {
+          "name": "提交执行",
+          "desc": "一次编译，多帧复用"
+        }
+      ],
+      "terms": [
+        "RenderGraph",
+        "Pass",
+        "Barrier",
+        "Memory Aliasing",
+        "CommandBuffer"
+      ],
+      "tasks": [
+        "关闭 Bloom Pass，观察依赖边、barrier 数量和峰值显存同时下降。",
+        "打开 aliasing，对比资源生命周期的错峰与实际占用显存。",
+        "关闭 Tonemap 后再关 Bloom，看依赖链断裂时下游资源如何消失。",
+        "数一数从手写 barrier 到图编译，哪些工作被挪到了编译期。"
+      ],
+      "code": "// RenderGraph 声明式用法（伪代码）\nRGTextureRef albedo  = graph.createTexture(\"albedo\",  4_MB);\nRGTextureRef hdr     = graph.createTexture(\"hdr\",     8_MB);\nRGTextureRef bloom   = graph.createTexture(\"bloom\",   8_MB);\n\ngraph.addPass(\"GBuffer\", [&](RGBuilder& b){\n  b.write(albedo);                    // 只声明意图\n});\ngraph.addPass(\"Lighting\", [&](RGPass& p){\n  p.read(albedo); p.write(hdr);\n});\ngraph.addPass(\"Bloom\", [&](RGPass& p){\n  p.read(hdr); p.write(bloom);\n});\n// compile() 负责：拓扑排序、barrier、transient 内存 aliasing\ngraph.compile();\ngraph.execute(frameContext);",
+      "note": "本实验的资源生命周期按 Pass 区间近似：barrier 计数只统计相邻依赖边，真实引擎还要处理队列族转移、布局切换与 acquire/release，数字用于建立直觉而非精确值。",
+      "selfTest": [
+        {
+          "q": "单 Pass 场景适合上 RenderGraph 吗？为什么？",
+          "a": "基本不适合。RenderGraph 的收益来自跨 Pass 的依赖管理、barrier 自动化和 transient 显存复用；单 Pass 没有这些切换点，引入它只剩框架成本和声明开销。"
+        },
+        {
+          "q": "barrier 是由谁插入的？",
+          "a": "由图编译器在 compile 阶段根据资源读写状态自动插入。手写 barrier 容易漏（出现竞态）或过量（破坏流水线），这正是 RenderGraph 的核心价值。"
+        },
+        {
+          "q": "aliasing 为什么能降低峰值显存？",
+          "a": "transient 资源的生命周期通常不重叠（GBuffer 在 Lighting 读完后即死亡）。把生命周期不重叠的资源映射到同一块物理显存上，峰值由'同一时刻存活资源之和'而非'全部资源之和'决定。"
+        }
+      ]
     }
   ]
 }
