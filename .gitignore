@@ -1,8 +1,12 @@
 # Internal agent work journals — not part of the knowledge base deliverable.
 .workbuddy-ai/memory/
 
+# Agent run logs — local only, retention policy archives summaries to archive/ (D15).
+.agent/runs/
+
 # Local tooling artifacts.
 .playwright-cli/
+.qoder-input-images/
 *.pyc
 __pycache__/
 .DS_Store

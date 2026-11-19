@@ -6,4 +6,4 @@
 - **技能发现 stub**：`skills/research-to-learning/SKILL.md`（保留 frontmatter 维持发现，正文在 `.agent/`）
 - **可执行脚本**（不迁移，门禁命令路径不变）：`skills/research-to-learning/scripts/check_chapter_arc.py`
 - **memory/**：宿主记忆，受保护（D09/D11"绝对不动"），gitignore 排除，不迁移
-- **plans/**：仓库内不存在。历史引用的计划文件实际位于用户目录（`~/.workbuddy-ai/plans/`），仓库内指向 `.workbuddy-ai/plans/` 的引用属过期引用，待清理（见 D14 已知问题）
+- **plans/**：仓库内不存在。历史引用的计划原件位于用户目录 `~/.workbuddy-ai/plans/`（会话级产物，不入仓库）；仓库内 3 处过期引用已于 2026-11-19 清理（如实指向用户目录 + DECISIONS 裁决萃取，D14 已知问题关闭）

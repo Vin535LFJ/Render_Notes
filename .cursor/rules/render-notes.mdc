@@ -1,0 +1,21 @@
+---
+description: Render_Notes 智能体文档治理入口（指针，不复制正文）
+doc_id: ADP-CURSOR
+type: adapter
+status: active
+owner: qwenwork
+updated: 2026-11-19
+related_adr: [ADR-0001]
+generated: false
+---
+
+# Render_Notes — Cursor 适配入口
+
+> 指针文件（D15 / ADR-0001）：只负责发现与跳转，正文统一在 `.agent/`。
+
+- 先读：`.agent/README.md`
+- 协作规则：`.agent/constitution/AGENT_RULES.md`
+- 文档政策：`.agent/constitution/DOCUMENTATION_POLICY.md`
+- 文档有效性：先查 `.agent/indexes/document-registry.json`
+- 人工关卡：`reviews/DECISION_REQUIRED.md`
+- 决策：`DECISIONS.md`（历史索引）+ `.agent/decisions/`（MADR）

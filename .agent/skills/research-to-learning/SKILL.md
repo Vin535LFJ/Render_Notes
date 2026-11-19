@@ -2,6 +2,14 @@
 name: research-to-learning
 description: Transform scattered research material (articles, papers, docs, notes) into a coherent, story-driven learning system. Use when asked to "turn research into a course", "build a learning path from these docs", "organize notes into a learning journey", or when a knowledge base feels like a flat taxonomy rather than a teachable sequence. Runs a five-phase workflow with mapped specialist roles (Evidence Analyst, Curriculum Designer, Story Architect, Practice Designer, Knowledge Publisher / Feedback Analyst). Outputs a research report, evidence ledger, knowledge model, docs, a chaptered learning path with hooks and practice, quizzes, a local feedback loop, and a review report.
 agent_created: true
+doc_id: SKILL-RTL
+type: skill
+status: active
+owner: qwenwork
+created: 2026-11-19
+updated: 2026-11-19
+related_adr: [ADR-0001]
+generated: false
 ---
 
 # Research to Learning
