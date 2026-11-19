@@ -28,8 +28,12 @@ SIDEBAR_PATH = ROOT / "site-vitepress" / ".vitepress" / "sidebar.generated.mjs"
 EXCLUDED_FILES = {
     "Master Prompt：构建 AI Knowledge-to-Learning Engine.md",
     "Render_Notes：从知识库到 AI 原生教学系统的工作流设计.md",
+    "CLAUDE.md",
+    "AGENTS.md",
 }
-EXCLUDED_TOP_DIRS = {"archive", "site-vitepress", "web", "node_modules", ".git", ".workbuddy-ai", ".agent", "tools", "evidence", "knowledge-model"}
+# 2026-11-19：新增 reviews —— 治理/审核材料不进知识 bundle（与 publish_boundary 口径一致）。
+# archive 仍排除（D10.4 VitePress 策略，本轮不变）。
+EXCLUDED_TOP_DIRS = {"archive", "site-vitepress", "web", "node_modules", ".git", ".workbuddy-ai", ".agent", ".gemini", ".cursor", ".github", "tools", "evidence", "knowledge-model", "reviews"}
 
 TOP_ORDER = [
     "00-导航与索引",

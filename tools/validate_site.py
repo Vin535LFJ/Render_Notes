@@ -70,7 +70,10 @@ def markdown_files() -> list[Path]:
         and "node_modules" not in p.parts
         and ".workbuddy-ai" not in p.parts
         and ".agent" not in p.parts  # D14：智能体文档仓库不进知识 bundle
+        and ".gemini" not in p.parts and ".cursor" not in p.parts and ".github" not in p.parts  # D15：客户端适配目录
+        and p.name not in {"CLAUDE.md", "AGENTS.md"}  # D15：根适配入口是指针
         and "archive" not in p.parts
+        and "reviews" not in p.parts  # 2026-11-19：治理/审核材料不进知识 bundle（与发布边界一致）
     )
 
 

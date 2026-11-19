@@ -1,0 +1,49 @@
+{
+  "seed": {
+    "source_id": null,
+    "claim_id": "V14"
+  },
+  "affected": {
+    "claims": [
+      "V14"
+    ],
+    "concepts": [
+      "K-STRIDE"
+    ],
+    "lessons": [
+      "L01"
+    ],
+    "quizzes": [
+      "L01#L01-Q2"
+    ],
+    "courses": [
+      "courses/video-rendering-journey/course.json",
+      "tools/course.json"
+    ],
+    "website": [
+      "web/content.js (build 生成物)",
+      "site-vitepress/docs/ (build 生成物)"
+    ]
+  },
+  "conflicts": [
+    {
+      "type": "unverified_claim_in_chain",
+      "claim": "V14",
+      "status": "open",
+      "note": "链中断言未 verified，升级/应用需人工裁决"
+    }
+  ],
+  "uncovered": {
+    "note": "历史数据/权威来源不足时如实标注，不伪造",
+    "claims_without_source": []
+  },
+  "counts": {
+    "sources": 19,
+    "claims": 37,
+    "concepts": 23,
+    "quizzes": 5,
+    "courses": 2
+  },
+  "generated_at": "2026-11-19 15:26",
+  "read_only": true
+}

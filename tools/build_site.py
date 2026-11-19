@@ -17,6 +17,8 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
 
+from publish_boundary import is_publishable  # 2026-11-19：集中发布边界，reviews/ 不进知识 bundle
+
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "web" / "content.js"
 GLOSSARY_PATH = ROOT / "tools" / "glossary.json"
@@ -435,16 +437,12 @@ def build_tech_index(glossary: dict) -> dict:
 
 
 def main() -> None:
+    # 集中发布边界（2026-11-19）：原内联排除项全部迁入 publish_boundary，并新增 reviews/ 排除。
+    # include_archive=True 保持 D10.4 离线站行为（archive/ 仍发布）。
     markdown_files = [
         path
         for path in ROOT.rglob("*.md")
-        if ".git" not in path.parts
-        and "web" not in path.parts
-        and "site-vitepress" not in path.parts
-        and "node_modules" not in path.parts
-        and ".workbuddy-ai" not in path.parts
-        and ".agent" not in path.parts  # D14：统一智能体文档仓库，不进知识 bundle
-        and ".zcode" not in path.parts  # D12/A3：排除外部 agent 工具产物，避免污染知识 bundle
+        if is_publishable(relpath(path), include_archive=True)
     ]
     markdown_files.sort(key=lambda p: sort_key(relpath(p)))
     all_doc_ids = [relpath(path) for path in markdown_files]

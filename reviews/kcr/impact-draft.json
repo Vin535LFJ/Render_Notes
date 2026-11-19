@@ -1,0 +1,30 @@
+{
+  "seed": {
+    "source_id": null,
+    "claim_id": null
+  },
+  "affected": {
+    "claims": [],
+    "concepts": [],
+    "lessons": [],
+    "quizzes": [],
+    "courses": [],
+    "website": []
+  },
+  "conflicts": [],
+  "uncovered": {
+    "note": "历史数据/权威来源不足时如实标注，不伪造",
+    "claims_without_source": []
+  },
+  "counts": {
+    "sources": 19,
+    "claims": 37,
+    "concepts": 23,
+    "quizzes": 5,
+    "courses": 2
+  },
+  "generated_at": "2026-11-19 15:26",
+  "read_only": true,
+  "claim_draft_echo": "新断言",
+  "note": "草稿模式仅回显文本，未匹配到现有断言；正式分析请用 --claim-id/--source-id"
+}
