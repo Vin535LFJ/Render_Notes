@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "note": "种子断言从 00-导航与索引/验真队列与术语表.md 与 概念引入说明.md 派生，状态继承原 ✅/⚠️/❗ 标记。AI 生成内容不得自动标为 verified。",
   "claims": [
     {
@@ -415,6 +415,106 @@
       ],
       "used_by_lessons": [
         "L02"
+      ]
+    },
+    {
+      "id": "V17",
+      "claim": "标准坐标空间链为 model→world→eye→clip→NDC→window；每空间各解决一个职责（摆放/相机/投影裁剪/归一化/落屏），透视除法由 GPU 固定管线在 clip→NDC 完成",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-3D-TRANSFORM",
+          "locator": "§1 坐标空间链（local --Model--> world --View--> eye --Projection--> clip --perspective divide--> NDC --Viewport--> window）",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [],
+      "note": "P7 由 AI 从主知识文档提取登记（G-T3/B10）；默认 open，待 G1 人工确认。替代 L13 原误挂 V06（V06 仅描述顶点/片元为 GLES 可编程阶段）。",
+      "source_documents": [
+        "07-3D渲染与算法实现/3D变换与坐标空间.md"
+      ],
+      "used_by_lessons": [
+        "L13"
+      ]
+    },
+    {
+      "id": "V18",
+      "claim": "列向量约定下 MVP 组合顺序为 P·V·M·v（从右到左先 M 再 V 再 P）；矩阵乘法不可交换，HLSL 行主序约定顺序相反",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-3D-TRANSFORM",
+          "locator": "§1.2 顶点着色器最小职责（gl_Position = u_projection * eye）+ §2.1 列主序不等于转置",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "仅适用于 GLSL/GLM 列主序 + 列向量约定；HLSL 行主序需用 mul(v, M)"
+      ],
+      "note": "P7 由 AI 从主知识文档提取登记（G-T3/B10）；默认 open，待 G1 人工确认。",
+      "source_documents": [
+        "07-3D渲染与算法实现/3D变换与坐标空间.md"
+      ],
+      "used_by_lessons": [
+        "L13"
+      ]
+    },
+    {
+      "id": "V19",
+      "claim": "透视投影把深度信息写进 w，透视除法必须在 clip→NDC 由固定管线完成；手动在顶点着色器做除法会破坏透视正确插值（硬件按 attr/w 插值再乘回 w）",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-3D-TRANSFORM",
+          "locator": "§1.2 透视正确插值由硬件完成（attr/w，再在片元乘回 w，✅）+ §4 投影矩阵",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [],
+      "note": "P7 由 AI 从主知识文档提取登记（G-T3/G-T9/B10）；默认 open，待 G1 人工确认。",
+      "source_documents": [
+        "07-3D渲染与算法实现/3D变换与坐标空间.md"
+      ],
+      "used_by_lessons": [
+        "L13"
+      ]
+    },
+    {
+      "id": "V20",
+      "claim": "NDC 跨 API 默认约定不同：OpenGL/GLES x/y∈[-1,1]、z∈[-1,1]、Y 向上、帧缓冲原点左下；Vulkan x/y∈[-1,1]、z∈[0,1]、Y 向下、原点左上；Vulkan Y 方向可用负视口高度翻转，绕序可由 frontFace 配置",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-3D-TRANSFORM",
+          "locator": "§5 NDC 与视口：跨 API 差异表（含默认约定说明与负视口高度翻转）",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "表中为默认约定，可用视口高度与 frontFace 配置改变；跨 API 以最终像素落点为准"
+      ],
+      "note": "P7 由 AI 从主知识文档提取登记（G-T9/B10），修正 L13 原'Y 轴可能相反'含糊表述；默认 open，待 G1 人工确认。",
+      "source_documents": [
+        "07-3D渲染与算法实现/3D变换与坐标空间.md"
+      ],
+      "used_by_lessons": [
+        "L13"
       ]
     },
     {

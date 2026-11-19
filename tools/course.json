@@ -273,9 +273,9 @@
       "question": "为什么说视频纹理化是“近零拷贝”？OES 为什么不能直接进普通多 Pass？",
       "minutes": 50,
       "objectives": [
-        "解释 updateTexImage 与变换矩阵的作用",
-        "说明 OES Input Pass 为什么必要",
-        "描述预览与导出如何复用同一 RenderGraph"
+        "说明 SurfaceTexture.updateTexImage 与纹理坐标变换矩阵的作用",
+        "解释 OES 纹理进入特效链前必经的第一道转换 Shader（FBO → 2D 纹理）",
+        "区分 PC 独显（PCIe 搬移）与移动 SoC（共享 DRAM）的数据通路"
       ],
       "prerequisites": [
         "L05"
@@ -483,7 +483,7 @@
       ],
       "checkpoint": [
         "单 Pass 场景适合上 RenderGraph 吗？为什么？",
-        "barrier 是由谁 inserted？人工还是图编译？"
+        "barrier 由谁插入？人工还是图编译？"
       ],
       "next": "L12"
     },

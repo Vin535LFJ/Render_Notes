@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "note": "来源登记表。种子来源来自现有验真队列与知识库中已引用过的权威文档；新增来源须填写 accessed 并可被 claim 引用。AI 生成内容不得自动标为 verified。",
   "sources": [
     {
@@ -200,6 +200,19 @@
       "accessed": "2026-11-18",
       "used_by_claims": [
         "E04"
+      ]
+    },
+    {
+      "id": "SRC-RN-3D-TRANSFORM",
+      "title": "Render_Notes 3D 变换与坐标空间（主知识文档）",
+      "url": "repo:07-3D渲染与算法实现/3D变换与坐标空间.md",
+      "type": "repo_doc",
+      "accessed": "2026-11-19",
+      "used_by_claims": [
+        "V17",
+        "V18",
+        "V19",
+        "V20"
       ]
     }
   ]

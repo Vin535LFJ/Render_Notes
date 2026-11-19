@@ -35,7 +35,13 @@ lab: rendergraph-dag
 
 ### 4.1 Pass 的正式名字
 
-OpenGL 里你手动绑 FBO，Vulkan 要求显式声明 `VkRenderPass`。同一个东西换了正式名字——这就是"突然冒出来"的错觉来源，桥梁见[概念引入说明 §Pass/RenderGraph](../../../00-导航与索引/概念引入说明.md#2-pass-rendergraph为什么学渲染时没遇到)。
+L3 的"绑定 FBO A 画一遍、再绑定 FBO B 画一遍"是两个 **Pass** 的原型；到显式 API（Vulkan），API 要求**提前声明** `VkRenderPass`——写明这次用到哪些附件、每个 subpass 读谁写谁（`VkAttachmentDescription` / `VkSubpassDependency`），见[显式API与同步原语 §6](../../../04-跨平台与高性能架构/显式API与同步原语.md#6-renderpass-subpass-load-store)。桥梁见[概念引入说明 §Pass/RenderGraph](../../../00-导航与索引/概念引入说明.md#2-pass-rendergraph为什么学渲染时没遇到)。
+
+**关系要说准**（G-T7 勘误）：
+
+- **Pass ≈ RenderPass 的"阶段"概念**：两者都指"一次渲染到某个目标的阶段"，这是可以把 L3 经验迁移过来的部分。
+- **但 RenderPass ≠ RenderGraph**：`VkRenderPass` 是显式 API 对**单个渲染阶段及其附件/subpass 读写关系**的声明；RenderGraph 是 CPU 侧引擎架构，把**多个 Pass 的依赖画成 DAG**、编译期分配显存、自动插同步（`E04`）。一个是 API 声明单位，一个是工程管理抽象，层级不同。
+- **关键差异**：Vulkan 需预先声明附件的 load/store 与 subpass 依赖，OpenGL 绑定 FBO 则由驱动隐式管理同步——不是"同一个东西换名字"，而是"同一类工作从隐式变显式"。
 
 ### 4.2 RenderGraph 做什么
 
@@ -66,7 +72,7 @@ DAG 中节点是 Pass，边是资源读写依赖。若纹理 A 的写 Pass 与�
 ## 9. 自我检测
 
 1. 单 Pass 场景适合上 RenderGraph 吗？为什么？
-2. barrier 是由谁 inserted？人工还是图编译？
+2. barrier 由谁插入？人工还是图编译？
 
 题目来源：`tools/course.json` L11 checkpoint；对应练习 `quizzes/L11.json`。
 

@@ -45,8 +45,8 @@
 | B10 | L13 候选断言登记（坐标空间链/MVP顺序/投影w/NDC差异 4 条） | 同意登记 / 调整 / 暂缓 | G1 §4.4 |
 | B11 | P02 与 L06 挂载矛盾 | L06 补声明 P02 / ledger 去挂载 | G1 §5 G1-b |
 | B12 | stash@{0}（README/archive/学习路径指南 3 处用户改动） | pop / drop / 继续保留 | CURRENT_AUDIT §1.1 |
-| B13 | reviews/ 是否纳入 git | 纳入 / 不纳入（本地审核工作区） | Loop 1 产出 |
-| B14 | 外来未跟踪产物 .zcode/、old_content.js.tmp | 保留 / 由用户清理 / 加 .gitignore | CURRENT_AUDIT §1.1 |
+| B13 | reviews/ 是否纳入 git | 纳入 / 不纳入（本地审核工作区） | Loop 1 产出；**已裁决：纳入 git**，见 DECISIONS.md D11/D12 |
+| B14 | 外来未跟踪产物 .zcode/、old_content.js.tmp | 保留 / 由用户清理 / 加 .gitignore | CURRENT_AUDIT §1.1；**已裁决：归档并提交**，见 DECISIONS.md D12 |
 
 ## 4. Category C · 需先研究再审（不得当作 A 直接改）
 
@@ -65,3 +65,19 @@
 - **已做**：仓库复核 + 四道门禁基线 + 偏差登记 + 程序化模块闭环核查；G1/G2/G3 审核材料；A/B/C 分类；统一裁决表；路线图。新建 reviews/ 7 文件。
 - **未做（隔离）**：未执行任何 Category A 修改；未升级任何 claim；未填任何人工结论；未 pop/drop stash；未触碰外来产物；未 commit/push；未动 archive/memory/vendor/index.html/README/两份方案。
 - **状态文档**：WORKFLOW_STATE.md / CHANGELOG.md 于 Step 7 更新（续跑点=等待裁决）。
+## 6. CHG-0001 本轮（2026-11-19）审核相关更新
+
+- P7 gap 修复已落地（L13 V17–V20 open 断言、L06 objectives/引用/P02、L11 RenderPass 勘误）；门禁 build/validate(0/0)/arc(5/5) 全绿，review_gate 输出仅为自动前置条件。
+- **G1 新增待裁决**：V17–V20（L13 坐标空间/MVP/透视除法/NDC）状态 open，待人工确认是否升级；原 V06 误挂已移除。
+- **G2 待裁决**：B4（Gold Standard L01 认可）、B10（L13 断言登记确认）、L02 目标改写复核；均未由 AI 通过。
+- **G3 仍未通过**；本轮不发布（D09）。
+- P2 试点（L13 教材页 + transform-mvp 实验页）规格见 `.agent/skills/learning-experience-design/preview/PILOT-L13-plan.md`，视觉方向待用户确认。
+
+## 7. 融合基线本轮（2026-11-19）审核状态
+
+- 发布边界修复已落地：reviews/ 8 篇不再进学习站 bundle；`web/content.js` 85→77 文档；boundary 11 测试全绿。审核材料完整保留在 `reviews/` 与注册表（不删除、仅供人工）。
+- 新增人工裁决材料包 `reviews/decision-kit/`：B4/V13/V14/B10/B11/B12/B15 七项全部 OPEN、裁决栏空白；B12 仅只读 stash diff。
+- **G1 待裁决**：V13（表述修正后升级）、V14（verified+条件）、V17–V20（L13 四条 open）、B10 确认——均未由 AI 升级。
+- **G2 待裁决**：B4（L01 Gold Standard）、B11（P02↔L06 挂载）——未自批。
+- **G3 仍未通过**；`review_gate.py` 只读输出再次确认"评分待人工、3 关卡未勾选"，本轮不发布（D09）。
+- P2 试点方向（方案 A 增量增强 / B 重设计）待用户确认，见 `.agent/skills/learning-experience-design/preview/PILOT-L13-plan.md`。

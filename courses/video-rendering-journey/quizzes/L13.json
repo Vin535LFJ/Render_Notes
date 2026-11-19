@@ -6,15 +6,20 @@
       "id": "L13-Q1",
       "type": "short",
       "prompt": "没有投影空间会发生什么？",
-      "answer": "失去透视感（远处物体不变小），深度信息无法写入 w，透视除法与裁剪无法正确进行。",
-      "claim_ids": []
+      "answer": "失去透视感（远处物体不变小），深度信息无法写入 w，clip→NDC 的透视除法与裁剪无法正确进行（V17、V19）。",
+      "claim_ids": [
+        "V17",
+        "V19"
+      ]
     },
     {
       "id": "L13-Q2",
       "type": "short",
       "prompt": "OpenGL 与 Vulkan 的 NDC 差异在哪里？",
-      "answer": "OpenGL NDC 为 [-1,1]，Vulkan 深度范围为 [0,1]，Y 轴方向也可能相反，移植时需处理 Y-flip。",
-      "claim_ids": []
+      "answer": "OpenGL NDC 为 [-1,1]、z∈[-1,1]、Y 向上、原点左下；Vulkan x/y∈[-1,1]、z∈[0,1]、Y 默认向下、原点左上。Vulkan 可用负视口高度翻 Y、frontFace 改绕序，移植时以最终像素落点为准（V20）。",
+      "claim_ids": [
+        "V20"
+      ]
     },
     {
       "id": "L13-Q3",
@@ -27,7 +32,7 @@
       ],
       "answer": 1,
       "claim_ids": [
-        "V06"
+        "V18"
       ]
     }
   ]

@@ -14,7 +14,7 @@
     {
       "id": "L11-Q2",
       "type": "short",
-      "prompt": "barrier 是由谁 inserted？人工还是图编译？",
+      "prompt": "barrier 由谁插入？人工还是图编译？",
       "answer": "由 RenderGraph 在图编译期根据依赖自动推导插入；人工只声明读写关系。",
       "claim_ids": [
         "E04"
