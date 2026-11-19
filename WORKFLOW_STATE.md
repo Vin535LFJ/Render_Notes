@@ -4,7 +4,7 @@
 >
 > 计划：`.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` · 裁决：`DECISIONS.md`
 
-**最后更新**：2026-11-18（P6 教材质量升级完成，Master Prompt V2.0） · **当前阶段**：P0–P5 + B1–B5 + P6 完成 · **续跑点**：**G2 人工审核**（材料：`courses/video-rendering-journey/G2-审核材料-P6.md`）；G2 确认后按 `NEXT_PHASE_PLAN.md` 启动 P7。另有 G1/G3 待人工、（需授权的）P4 docs:build。
+**最后更新**：2026-11-19（Master Prompt V3.0 · Loop 2 部分执行） · **当前阶段**：P0–P6 + B1–B5 + V3-Loop1 完成；Loop 2 已记录裁决（D12）+ KCR 机制设计（D13）+ 执行已决安全项 + P7.1 第一项 L02 修复 · **续跑点**：P7.1 第二项 L06（待 B4/B10 相关裁决推进 L13）；**仍待人工**：B4（L01 阅读认可）、B7/B8（V13/V14 升级，核验已完成见 G1 §7）、B10–B15（未答复，不视为同意）。G3 仍未通过。
 
 ---
 
@@ -23,6 +23,8 @@
 | B4 | review_gate.py | ✅ 完成 | 只读前置清单，G1/G2/G3 待人工；不写分数 |
 | B5 | 学习反馈闭环 | ✅ 完成 | feedback.json + report_feedback.py + 离线前端 UI（localStorage 队列 + JSON 导出）；端到端验证通过；D04 偏离已授权 |
 | P6 | 教材质量升级（Master Prompt V2.0） | ✅ 完成，待 G2 | 审计三件套 + 教材质量诊断（2+1 处 blocker）+ 课程覆盖矩阵 + Gold Standard L01 重写 + V13/V14 登记（open）+ 质量规范提案 + G2 材料；门禁 11 checks 0 FAIL / arc 5/5；D11 登记 |
+| V3-Loop1 | 审核准备（Master Prompt V3.0） | ✅ 完成，待裁决 | reviews/ 7 文件（CURRENT_AUDIT/G1/G2/G3/REVIEW_STATUS/DECISION_REQUIRED/EXECUTION_PLAN_V3）；门禁复跑 11/0/0·arc 5/5；偏差登记（L01 239 行/31 claims·16 sources/build 69 基线/.zcode 污染）；A/B/C 分类；未改既有内容文件、未升级 claim、未填人工结论 |
+| V3-Loop2 | 裁决后执行（部分） | 🔄 进行中 | D12 裁决记录 + D13 KCR 机制设计（reviews/KNOWLEDGE_CHANGE_REVIEW.md）；已执行 B2 路线（脚本验证 ALL CONSISTENT）/B5 README/B3 规范采纳/A1 数字/A3 build 排除.zcode/A4 导航补 U7/A5 K-STRIDE 改挂/C2 API 勘误/B9 Pass 统一；权威核验完成（G1 §7）；P7.1 L02 修复（V15/V16 open + 正文重写 + quiz）；门禁 11/0/0·arc 5/5·33 claims 误标 0；L06/L13/L11 待续 |
 
 图例：⬜ 待办 · 🔄 进行中 · ✅ 完成 · ⛔ 阻塞
 
@@ -42,11 +44,13 @@
 
 ## 人工审核关卡（方案要求，不可由 AI 自批）
 
-| 关卡 | 位置 | 状态 |
-|---|---|---|
-| G1 研究范围审核 | P1 证据层种子确定后 | ⬜ 待人工 |
-| G2 课程大纲审核（最重要） | P2 `curriculum.md` 完成后 | ⬜ 待人工 |
-| G3 最终发布审核 | P5；本计划不发布，仅记录 | ⬜ 待人工 |
+| 关卡 | 位置 | 状态 | V3.0 审核材料 |
+|---|---|---|---|
+| G1 研究范围审核 | P1 证据层种子确定后 | ⬜ 待人工 | reviews/G1-evidence-review.md（31 claims，V13/V14 升级评估） |
+| G2 课程大纲审核（最重要） | P2 `curriculum.md` 完成后 | ⬜ 待人工 | reviews/G2-curriculum-review.md（G2-01…06 重核） |
+| G3 最终发布审核 | P5；本计划不发布，仅记录 | ⬜ 待人工（**仍未通过**） | reviews/G3-release-readiness.md |
+
+统一裁决表：`reviews/DECISION_REQUIRED.md`（B1–B15，未回复不视为同意）。
 
 ## 审核评分（P5 人工填写）
 
@@ -54,9 +58,11 @@
 
 ## 续跑指引
 
-1. 读 `DECISIONS.md` 确认裁决未变（D01–D11；D11 为 P6 执行默认值）。
-2. P0–P5 + B1–B5 + P6 已完成。**当前阻塞点是 G2 人工审核**：读 `courses/video-rendering-journey/G2-审核材料-P6.md`，裁决其中 6 个问题（L02 目标取舍、主课程 L12→L15 路线矛盾、质量规范认可、Gold Standard 深度、README 数字授权、docs:build 授权）。G2 未确认前不启动 P7 内容生产。
-3. G2 确认后按 `NEXT_PHASE_PLAN.md` 执行 P7：先修 L02 blocker（引用失实/目标无出处）与 L13 断言链，再按覆盖矩阵 §4 顺序逐篇深化，一次一篇。
-4. 每阶段结束跑门禁（本机用 `py -3`，`python` 解析到 cygwin stub 不可用）：`py -3 tools/build_site.py` → `py -3 tools/validate_site.py`（0 FAIL/0 WARN）→ `py -3 .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md`；涉及审核时 `py -3 tools/review_gate.py`（只读）。
-5. 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）。
-6. P6 产物已 commit `3ce7b2f` + 文档笔 `0b2c0a1`，并经用户授权 push 到 origin/master（2026-11-18，远端 HEAD=`0b2c0a1`，本地同步）；后续阶段默认不 commit/push，除非用户明确授权（D09/D11.9）；在线发布（D02）仍未授权。不碰 `.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、两份旧方案文档；执行结果写入 `CHANGELOG.md` 与本文件。
+1. 读 `DECISIONS.md`（D01–D11）与 `reviews/REVIEW_STATUS.md` 确认审核分类。
+2. **当前阻塞点 = 等待 `reviews/DECISION_REQUIRED.md` 人工裁决（B1–B15）**。核心：B1 L02 目标取舍、B2 主课程路线（推荐改 L12.next→L13）、B3 质量规范采用、B4 Gold Standard 认可、B7/B8 V13/V14 升级、B9 Pass 口径、B10 L13 断言登记、B12 stash、B13 reviews/ 入 git。**未回复项保持待审核，不视为同意。**
+3. 收到裁决后按 `reviews/EXECUTION_PLAN_V3.md` Loop 2：记录裁决入 DECISIONS.md → 执行 Category A（A1 数字更正/A3 build 排除 .zcode/A4 学习路径指南补 U7/A5 K-STRIDE 改挂/A6 Pass 勘误）→ P7.1 blocker（L02→L06→L13→L11）→ P7.2 逐篇深化（一次一篇）。
+4. 每阶段/每篇跑门禁（本机 `py -3`，`python` 解析到 cygwin stub 不可用）：`py -3 tools/build_site.py` → `py -3 tools/validate_site.py`（0 FAIL/0 WARN）→ `py -3 .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md` → `py -3 tools/review_gate.py`（只读）。
+5. 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）；VitePress 构建需 B6 授权。
+6. P6 产物已 commit+push（远端 HEAD 曾达 `650bb14`）；**V3.0 Loop 1 未 commit/push**（reviews/ 与状态文档改动待 B13 裁决及用户授权）。后续默认不 commit/push，除非明确授权（D09/D11.9）；在线发布（D02）未授权。
+7. 绝对不动：`.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、README（B5 前）、两份方案文档、已确认路线（B2 前）、claim 状态（G1 前）、外来产物 `.zcode/`+`old_content.js.tmp`（B14 前）、stash（B12 前）。执行结果写入 `CHANGELOG.md` 与本文件。
+8. 已知环境事实：本 turn `git ls-remote` 因网络/DNS 中断受阻，远端新鲜同步待网络恢复复核；本地 origin/master 引用=HEAD=`650bb14`。

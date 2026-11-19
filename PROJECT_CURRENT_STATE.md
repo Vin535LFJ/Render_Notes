@@ -1,6 +1,7 @@
 # PROJECT_CURRENT_STATE · Render_Notes 真实状态审计
 
 > 审计时间：2026-11-18。依据 Master Prompt V2.0 第一步要求产出。
+> **V3.0 更新（2026-11-19）**：本文件为 P6 审计基线快照；当前真值（build 干净基线 69 docs / 31 claims·16 sources / L01 239 行 / .zcode 污染说明）以 `reviews/CURRENT_AUDIT.md` 为准。claim/source 计数已就地更正为 31/16。
 > 口径：一切以实际代码与本地文件实测为准；旧方案文档、README 数字、历史对话描述不作为执行依据（D08）。
 > 配套文件：`CURRENT_GAPS.md`（缺口）、`NEXT_PHASE_PLAN.md`（P6–P10 计划）。
 
@@ -40,7 +41,7 @@ Render_Notes：从知识库到 AI 原生教学系统的工作流设计.md（旧�
 | `tools/build_site.py` | 63 documents / 17 sections / 11 glossary groups / 124 terms / 8 units / 19 lessons / 7 labs / 461 term cards / 2136 KB |
 | `tools/validate_site.py` | **11 checks passed, 0 warnings, 0 failures**，exit 0 |
 | `check_chapter_arc.py`（5 篇样章） | 5/5 OK，exit 0 |
-| `tools/review_gate.py` | 29 claims（verified 16 / conditional 7 / open 6）；误标 verified 0；curriculum 7/7 段；G1/G2/G3 均待人工 |
+| `tools/review_gate.py` | 31 claims（verified 16 / conditional 7 / open 8）；误标 verified 0；curriculum 7/7 段；G1/G2/G3 均待人工 |
 
 **重要结论：结构门禁全绿 ≠ 教学质量达标。** 本次深度诊断（见 `courses/video-rendering-journey/教材质量诊断.md`）发现多处门禁无法覆盖的语义问题，包括一处夸大引用（L02"分级处置"源文档不存在）与一处断言链断裂（L13 核心知识无 Claim 支撑）。
 
@@ -50,7 +51,7 @@ Render_Notes：从知识库到 AI 原生教学系统的工作流设计.md（旧�
 - 主知识文档分布在 01–07 目录；`archive/` 只读未动。
 - `tools/glossary.json`：124 术语 / 11 组，术语定义唯一来源。
 - `knowledge-model/concepts.json` + `taxonomy.json`：概念带 layer（L0–L7）、glossary_term、relations（prerequisite_of / contrast_with / used_by / part_of），validate §9 全过。
-- `evidence/claim-ledger.json`：29 条断言（V01–V12、C01–C07、P01–P06、E01–E04）；`source-registry.json`：15 个来源，双向索引完整。
+- `evidence/claim-ledger.json`：31 条断言（V01–V14、C01–C07、P01–P06、E01–E04；V13/V14 为 P6 新增，open 待 G1）；`source-registry.json`：16 个来源（含 SRC-RN-AV-BASE），双向索引完整。
 - 推导深度不均：`3D变换与坐标空间.md` 推导最完整；`音视频基础理论.md` §1/§2 有完整公式与数值实例、§4 同步部分仅结论级；`解码与播放链路.md` 工程流程详尽但无数学推导，且个别 API 名不严谨（见诊断 D-L06-5）。
 
 ### 4.2 课程层（两套数据，存在映射缺口）

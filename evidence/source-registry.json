@@ -21,7 +21,8 @@
       "accessed": "2026-11-18",
       "used_by_claims": [
         "V03",
-        "V10"
+        "V10",
+        "V16"
       ]
     },
     {
@@ -132,7 +133,28 @@
       "accessed": "2026-11-18",
       "used_by_claims": [
         "V13",
-        "V14"
+        "V14",
+        "V16"
+      ]
+    },
+    {
+      "id": "SRC-MEDIA3-SEEK",
+      "title": "Android Media3/ExoPlayer 官方 Troubleshooting（精准 seek 静默解码）",
+      "url": "https://developer.android.com/media/media3/exoplayer/troubleshooting",
+      "type": "official_doc",
+      "accessed": "2026-11-19",
+      "used_by_claims": [
+        "V15"
+      ]
+    },
+    {
+      "id": "SRC-RN-DECODE-PIPELINE",
+      "title": "Render_Notes 解码与播放链路（主知识文档）",
+      "url": "repo:02-解码与播放链路/解码与播放链路.md",
+      "type": "repo_doc",
+      "accessed": "2026-11-19",
+      "used_by_claims": [
+        "V15"
       ]
     },
     {

@@ -354,6 +354,70 @@
       ]
     },
     {
+      "id": "V15",
+      "claim": "精准 seek 落到目标 PTS 前最近 I 帧，中间帧解码但不渲染（静默解码追赶），到达目标后首帧强制渲染而非按迟到丢弃",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-MEDIA3-SEEK",
+          "locator": "Troubleshooting: Why is seeking slow（decoded and immediately discarded without being shown）",
+          "evidence_type": "official_doc"
+        },
+        {
+          "source_id": "SRC-RN-DECODE-PIPELINE",
+          "locator": "§8.2 精准 Seek（高速静默解码，releaseOutputBuffer(index,false) 丢弃而不渲染）",
+          "evidence_type": "repo_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "硬解追赶速度受解码器吞吐限制，并非无限快",
+        "recover 非 ExoPlayer 官方状态名，对应 position reset 后首帧强制渲染机制（renderedFirstFrameAfterReset）"
+      ],
+      "note": "V3.0 Loop 2 由 B1 研究登记（Media3/FFmpeg/MediaCodec BUFFER_FLAG_DECODE_ONLY/ExoPlayer 源码核验）；修正原 L02 目标'seek 后禁止立刻丢帧'的不准确表述。默认 open，待 G1 升级。",
+      "source_documents": [
+        "02-解码与播放链路/解码与播放链路.md",
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L02"
+      ]
+    },
+    {
+      "id": "V16",
+      "claim": "音画同步按 Δt=PTS_video−Clock_master 分级：Δt>0 挂起等待、Δt<0 超阈值丢帧追赶；多路场景用 PLL 微调帧率而非粗暴跳帧",
+      "claim_type": "engineering_fact",
+      "evidence": [
+        {
+          "source_id": "SRC-RN-AV-BASE",
+          "locator": "§4.2 音视频同步策略（Δt 两分支）+ §4.3 PLL 平滑时钟（⚠️有条件）",
+          "evidence_type": "repo_doc"
+        },
+        {
+          "source_id": "SRC-FFMPEG-DOC",
+          "locator": "音视频同步时钟策略",
+          "evidence_type": "official_doc"
+        }
+      ],
+      "verification": {
+        "status": "open",
+        "confidence": "low"
+      },
+      "conditions": [
+        "PLL 方案精度受硬件平台与驱动实现影响（源文档 ⚠️有条件成立）"
+      ],
+      "note": "V3.0 Loop 2 登记，替代 L02 原'强纠偏区/分级处置'夸大引用（源文档无该词）；真实内容为 Δt 两分支 + 多路 PLL。默认 open，待 G1 升级。",
+      "source_documents": [
+        "01-基础理论/音视频基础理论.md"
+      ],
+      "used_by_lessons": [
+        "L02"
+      ]
+    },
+    {
       "id": "C01",
       "claim": "TextureView 通常更灵活但可能更耗合成成本",
       "claim_type": "conditional",

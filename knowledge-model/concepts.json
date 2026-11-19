@@ -112,7 +112,7 @@
         {
           "type": "prerequisite_of",
           "target": "K-DMA",
-          "source_claim": "V02"
+          "source_claim": "V14"
         }
       ]
     },

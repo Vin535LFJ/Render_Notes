@@ -86,3 +86,28 @@
 8. **README 不动**（D10.5 继续有效）：数字过时已登记 G-R1 决策提案，待授权。
 9. **commit/push 口径**：D09 的 P5 一次性授权已用于 5359259。**2026-11-18 用户新授权"先提交代码，保存修改"** → P6 全部产物本地 commit `3ce7b2f`（19 文件）+ 文档笔 `0b2c0a1`；**用户随后授权"push吧"** → 已 push 到 origin/master（远端 HEAD=`0b2c0a1`，本地与远端同步）。本次 commit+push 为一次性明确授权；后续阶段默认不 commit/push，除非用户再次授权。远程在线发布（GitHub Pages 等，D02）仍未授权。
 10. **本机门禁命令用 `py -3`**：`python` 首选解析到 cygwin stub 不可用（环境事实，Python 3.12.10 实测可用）。
+
+## D12 · V3.0 Loop 2 人工裁决记录（2026-11-19）
+
+> 来源：用户对 `reviews/DECISION_REQUIRED.md` 的答复（倾向性建议）。**未答复项保持待审核，不视为同意**（V3.0 §11）。权威来源核验已完成（网络恢复），证据见 `reviews/G1-evidence-review.md` 增补与下方。
+
+1. **B1 / G2-01（L02 无证据目标）= 先补研究，无法证实时删除**。研究结论（C1 已完成，权威来源 Media3/FFmpeg/MediaCodec/ExoPlayer）：精准 seek"静默解码追赶"机制**证实存在**，但原目标"seek 后为什么不能立刻丢帧"**表述不准确**——追赶期恰恰解码但不渲染（丢弃陈旧帧），到达目标 PTS 后首帧强制渲染。→ **保留知识点但改写目标**为准确表述（"解释精准 seek 的静默解码追赶与目标首帧强制渲染"），补 claim（默认 open）+ 引用解码链路 §8.2:348。"recover"非 ExoPlayer 官方状态名，改称"position reset 后首帧强制渲染"。
+2. **B2 / G2-02（主课程路线）= A 先完成前置再性能评测**。改 `tools/course.json` L12.next 由 L15→L13（L13.next=L14、L14.next=L15 已存在），全链先修满足。pilot 路线不受影响。
+3. **B3 / G2-03（质量规范）= A 认可为可迭代标准**。`lesson-quality-standard.md` 正式采纳为后续教材统一基准（可迭代）；不强制同构标题。
+4. **B4 / G2-04（Gold Standard L01）= 待定**。用户需实际阅读 L01 后决定，**不视为认可**；L01 样板地位待 B4 确认。P7 其余章节以 B3 已采纳规范为基准。
+5. **B5 / G2-05（README）= A 授权按实测更新**。解除 D10.5"README 不动"；按实测真值更新数字（保留用户 chat 链接）。
+6. **B6 / G2-06（VitePress）= A 授权本地构建，不授权远程发布**。可执行 `npm run docs:build`（放行 vitepress 自身 `.temp/dist` 清理）；**GitHub Pages 等远程发布仍未授权（D02 维持）**。
+7. **G1-01（V13/V14 升级，B7/B8）= 逐条核查证据后决定**。核验已完成：V13 核心（亮度空间视锐度>色度）获权威支持（Wikipedia Chroma subsampling 引 Winkler 2001/Livingstone 2002；ACM 综述），但"杆状细胞远多于锥状细胞"作直接因果属简化（杆状细胞仅主导暗视觉，明视觉色觉/细节由锥状细胞及通路承担）→ **需修正 V13 与 L01 §3 表述**；V14 stride 机制获源文档✅支持。状态升级（open→verified）**仍待人工最终确认**；先按权威来源修正表述，不自动升级。另按 Poynton：视频 Y' 为 luma（伽马校正），严格区别于 luminance Y，数字视频宜称 Y'CbCr（术语精化建议）。
+8. **G1-02（Pass 口径 B9 / SurfaceTexture API C2）= 以权威技术来源为准**。
+   - SurfaceTexture：权威核验（AOSP source.android.com/docs/core/graphics/arch-st、NDK surface_texture.h）确认正确为 `SurfaceTexture.getTransformMatrix(float[])`（NDK `ASurfaceTexture_getTransformMatrix`，API28+）；`glGetTransformMatrix()` 非 GL 函数。→ **勘误解码与播放链路.md:124**。
+   - Pass 深度：Frostbite FrameGraph GDC 2017 全文与 Vulkan 规范**均无 ≥3/>3 硬阈值**，属工程启发式。→ 内部统一 **≥3**（C06/验真队列/概念引入多数口径），并**软化为启发式表述**（非规范结论）；勘误跨平台与高性能架构.md:205 ">3"→"≥3（工程启发式）"。
+9. **未答复项保持待审核**：B10（L13 候选断言登记）、B11（P02 与 L06 挂载）、B12（stash pop/drop）、B13（reviews/ 是否入 git）、B14（外来产物 .zcode/old_content.js.tmp）、B15（C3–C7 研究立项）。**不执行、不视为同意。**
+10. **Category A 执行授权**：Loop 2 按计划批量执行 A1（数字口径更正）/A3（build 排除 .zcode）/A4（学习路径指南补 U7）/A5（K-STRIDE 改挂 V14）/A6（Pass 勘误，依 D12.8）。A2 为提示词路径描述，仅记录。
+11. **commit/push 口径**：本轮（Loop 2）默认不 commit/push，除非用户再次授权（D09/D11.9 延续）。
+
+## D13 · 引入 Knowledge Change Review（知识变更审核）机制（2026-11-19，用户新增需求）
+
+- **裁决**：项目已是持续产生新知识/报告/教材的系统，须引入明确的 **Knowledge Change Review（KCR）** 机制，确保新研究不弄乱既有知识体系。纳入 P8（D3 增量更新 / D4 影响链）正式实现。
+- **机制四阶段**：① 新研究报告进入 → ② 影响分析（Source→Claim→Concept→Lesson→Quiz→Course）→ ③ 变更提案（新增/修改/废弃/重新验证，逐项带证据与受影响产物）→ ④ 人工审核（批准/驳回/补充研究，AI 不自主）→ ⑤ 增量更新教材与网站（保留版本记录与来源追溯，过门禁）。
+- **设计交付**：`reviews/KNOWLEDGE_CHANGE_REVIEW.md`（机制设计 + JSON schema 提案 + 与现有 tools/evidence 集成方案）。实现归 P8，复用 claim-ledger/source-registry/concepts/course.json/validate_site，不重建。
+- **约束**：变更提案不得自动替代人工审核；废弃 claim 保留 ID 改状态加 note（evidence-and-claims 硬规则 5）；增量更新不重生成全库。

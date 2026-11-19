@@ -4,6 +4,83 @@
 > 权威口径见 `DECISIONS.md`；当前阶段见 `WORKFLOW_STATE.md`。
 > P5 + Part B 执行期间遵循 D09（不 commit/push）；2026-11-18 用户新授权 commit + push 到 origin/master，见文末"git 提交"段与 DECISIONS.md D09 更新。
 
+## 2026-11-19 · Master Prompt V3.0 · Loop 2 裁决后执行（部分）
+
+> 收到用户裁决（D12）+ 新增 Knowledge Change Review 机制需求（D13）。网络恢复，权威来源核验完成。
+
+### 裁决记录与机制设计
+- DECISIONS.md 新增 **D12**（B1–B6/G1-01/G1-02 逐项裁决，含待定项 B4/B10–B15 不视为同意）+ **D13**（引入 KCR 机制）。
+- 新增 `reviews/KNOWLEDGE_CHANGE_REVIEW.md`：KCR 五阶段（影响分析→变更提案→人工审核→增量更新→验证归档）+ impact/proposal/decision JSON schema + 与现有 tools/evidence 集成方案 + "新 GPU 同步机制" worked example。实现归 P8（D3/D4）。
+
+### 权威来源核验（G1 §7 增补）
+- SurfaceTexture：正确 `SurfaceTexture.getTransformMatrix()`（AOSP/NDK 官方），`glGetTransformMatrix()` 不存在 → 勘误解码链路:124。
+- Pass 阈值：Frostbite GDC 2017/Vulkan 无硬阈值，属启发式 → 统一 ≥3 并软化，勘误跨平台:205。
+- V13 生理：核心高置信支持（Wikipedia 引 Winkler 2001/Livingstone 2002/ACM），但杆/锥因果属简化 → 建议修正表述后升级（待人工，本轮未改 V13/L01）。
+- seek：Media3/FFmpeg/MediaCodec/ExoPlayer 证实静默解码追赶+首帧强制渲染；原"禁止立刻丢帧"表述不准确。
+
+### 已执行（已裁决安全项 + Category A）
+- **B2**：tools/course.json L12.next L15→L13；一致性脚本复跑主线 L00→…→L18 先修全满足（branch=[]，ALL CONSISTENT）。
+- **B5**：README 三处数字按实测更新（26 主文档/57 非归档 md/7 实验/124 术语；保留 chat 链接）。
+- **B3**：lesson-quality-standard.md 采纳为可迭代基准。
+- **A1**：L01 行数约300→239（CHANGELOG/G2材料）；PROJECT_CURRENT_STATE claim/source 29/15→31/16 + V3.0 真值指引。
+- **A3**：build_site.py 排除 .zcode/（消除 bundle 污染）。
+- **A4**：学习路径指南.md 补 U7/程序化几何 L17/L18（W10+ 行）。
+- **A5**：concepts.json K-STRIDE source_claim V02→V14。
+- **C2/B9 勘误**：解码链路:124 API 名；跨平台:205 Pass 口径。
+
+### P7.1 第一项 L02 修复（blocker G-T1/G-T2）
+- 新断言 **V15**（精准 seek 静默解码追赶+首帧强制渲染）/**V16**（Δt 分级同步+多路 PLL），默认 open；新来源 SRC-MEDIA3-SEEK（official_doc）/SRC-RN-DECODE-PIPELINE（repo_doc）；V16 复用 SRC-FFMPEG-DOC/SRC-RN-AV-BASE 反向索引。
+- 两层 course.json L02：目标[2] 改写为准确 seek 表述；checkpoint[1] 失实"强纠偏区"→"Δt 正/负处理"；新增 checkpoint[2] seek。
+- L02 正文重写：§4.3 夸大引用改为真实 Δt 两分支+PLL⚠️条件；新增 §4.4 精准 seek；§4.1 补 I-B-P-B-P 五帧表；§5 Δt 公式；§6 误区修正；§9 三题对应三 checkpoint；§11 断言状态说明。
+- quizzes/L02.json 重写为 4 题（Q1 B帧 V03 / Q2 Δt V16 / Q3 主时钟 V10 / Q4 seek V15），覆盖 3 checkpoint。
+
+### 门禁（本轮实测）
+- build **77 documents**（69 知识 + 8 reviews；.zcode 已排除）/ 18 sections / 124 terms / 19 lessons / 7 labs / 559 term cards。
+- validate **11 checks / 0 FAIL / 0 WARN**；arc **5/5 OK**（含重写 L02）；review_gate **33 claims（16 verified/7 conditional/10 open）误标 0**；一致性脚本 ALL CONSISTENT。
+
+### 边界与待续
+- 未 commit/push（D12.11）；未升级任何 claim（V13/V14/V15/V16 均 open 待 G1）；未填人工结论。
+- **未改 L01**（B4 待用户阅读；V13 表述修正建议待裁决）；未动 archive/memory/vendor/index.html/两份方案；外来产物 .zcode/old_content.js.tmp/stash 未触碰（B12/B14 待裁决）。
+- 待续：P7.1 L06（第三项）/L13（第二项，待 B10 断言登记裁决）/L11（第四项）；B6 VitePress 本地构建排 P10。
+- 仍待人工：B4（L01 认可）、B7/B8（V13/V14 升级）、B10–B15。
+
+## 2026-11-19 · Master Prompt V3.0 · Loop 1 审核准备
+
+> 审核驱动开发：本轮只做审核材料与分类，**不执行依赖人工裁决的修改**。产物在 `reviews/`（7 文件）。
+
+### 仓库复核与基线（实测）
+- 本地 HEAD=`650bb14`，origin/master 引用同值；**本 turn `git ls-remote` 因网络/DNS 中断受阻**（Could not resolve host），远端新鲜同步待网络恢复复核，不声称已验证。
+- 工作区审计前非干净：`M web/content.js`（另一 agent 今早 08:59 重建，比 HEAD 多约 8.8KB）+ 未跟踪 `.zcode/plans/plan-sess_*.md`（6034B）+ `old_content.js.tmp`（2.35MB）。外来产物**未触碰**；content.js 备份至临时目录后按 V3.0 计划恢复 HEAD。
+- stash@{0}：README/archive/README/学习路径指南 3 处用户改动，**未 pop/drop**（B12 待裁决）。
+- 四道门禁：build **70 docs/18 sections**（含 .zcode 污染）/ validate **11 checks 0 FAIL 0 WARN** / arc **5/5 OK** / review_gate **31 claims（16 verified/7 conditional/8 open）误标 0**。
+- **content.js drift 根因**：build_site.py:440-445 未排除 `.zcode/`，未跟踪工具计划文件被当第 70 篇文档；干净基线 **69 docs/17 sections/497 cards/2291 KB**（HEAD bundle）。validate §7 仅查前缀不比对篇数，恢复 HEAD 仍 0 FAIL。登记 Category A（A3）。
+
+### 偏差登记（声称 vs 实测）
+- ① L01 行数：CHANGELOG/G2材料"约300行" → 实测 **239 行**。
+- ② claim/source：PROJECT_CURRENT_STATE "29/15" → 实测 **31/16**（P6 新增 V13/V14+SRC-RN-AV-BASE）。
+- ③ build 篇数演进 48→62→63→69；当前干净基线 69（PROJECT_CURRENT_STATE §3 仍停 63 基线快照）。
+- ④ V3.0 根目录 quizzes/ 实际在 courses/video-rendering-journey/quizzes/。
+- ⑤ stash 未决（B12）。⑥ 程序化模块以 07 文档落地（非"08 章节"），course.json L00–L18/8 单元；无 08-* 目录。
+
+### 程序化模块闭环核查
+- 文档（07/程序化几何与旋转曲面.md 170行 ✅/⚠️）+ L17/L18 元数据 + procedural-lathe/pbr-lighting 实验 + glossary procedural-graphics 组 + graph.json 节点 + 双线规划§7"任务二阶段1成课"——**闭环成立**。
+- 唯一导航缺口：学习路径指南.md 未收录 U7/L17/L18（F-2，Category A4）；UV 无独立术语条目（F-3，C7）。
+
+### 审核材料（reviews/ 新增 7 文件）
+- CURRENT_AUDIT.md：git/门禁/偏差/程序化闭环/真值快照。
+- G1-evidence-review.md：31 claim 全量（双向索引完整、23 概念 source_claim 全解析）；V13/V14 升级评估（引源文档✅段，不自动升级）；Pass 口径冲突（跨平台:205 ">3" vs 验真队列:47/概念引入:145 "≥3"）；SurfaceTexture API（解码链路:124 glGetTransformMatrix 不准确，3D变换:225 正确）；L13 断言缺口（4 候选）；K-STRIDE 弱挂 V02。
+- G2-curriculum-review.md：G2-01…06 重核（修正旧结论：seek 目标有 glossary:641 种子但与§8.2 机制语境矛盾）；G2-02 确定性复跑确认主线矛盾，**单指针修复方案 L12.next→L13**；G2-04 重读 L01 239 行十维度达标。
+- G3-release-readiness.md：**G3 仍未通过**；结构层就绪/语义层未就绪；人工评分表留空。
+- REVIEW_STATUS.md：A/B/C 分类（A1–A6 / B1–B14 / C1–C7）。
+- DECISION_REQUIRED.md：统一裁决表 B1–B15，空白裁决栏，未回复不视为同意。
+- EXECUTION_PLAN_V3.md：Loop 2（裁决→Category A→P7 blocker L02→L06→L13→L11→P7.2）/ Loop 3（P8→P9→P10 独立验收）。
+
+### 边界确认
+- 仅新建 reviews/ 7 文件 + 更新 WORKFLOW_STATE.md/CHANGELOG.md（本文件）；**未改任何既有内容文件**（含 build_site.py/concepts.json/主文档/README）。
+- 未升级任何 claim；未填任何人工结论/评分；未 pop/drop stash；未触碰外来产物；未 commit/push。
+- content.js 恢复 HEAD（生成物可再生，计划授权）；未动 archive/memory/vendor/index.html/两份方案。
+- 记忆修正：程序化模块已并入 07（非 08）；当前续跑点=等待 DECISION_REQUIRED 裁决。
+
 ## 2026-11-18 · P6 教材质量升级（Master Prompt V2.0）
 
 ### 第一步审计（实测）
@@ -23,7 +100,7 @@
 - **第 3 项确定性验证**（一次性审计脚本，不入仓库）：先修存在性 19/19 + DFS 无循环；主课程 next 链行走实测 L15/L17/L18 先修未满足（G-D2 精确量化到 L17/L18）；pilot 路线 next 指针 + §10 正文桥 + lessonFile + quiz + lab 双向**全部一致 0 问题**；labs.json 7 实验 lesson 反向均有效。桥接检测限定 §10 段落，排除 §11 延伸链接误报。结论已写入覆盖矩阵 §2.1，G-D2 范围同步扩展至 L17/L18。
 
 ### P6.3 Gold Standard L01 + 数据修复
-- 重写 `lessons/L01-为什么视频不是-RGB.md`（88→约 300 行）：精确数字开篇（22.4GB vs 112.5MB 两刀分解）、生理依据（V13）、4:2:0 记号与采样对照表、NV12 布局图、stride 公式+1080@128 算例+逐行错位推导+绿屏成因计算（V14）、glPixelStorei 代码、排查案例、实验四任务+full-range 边界、因果链回忆。checkpoint 两题原文保留。
+- 重写 `lessons/L01-为什么视频不是-RGB.md`（88→239 行，实测）：精确数字开篇（22.4GB vs 112.5MB 两刀分解）、生理依据（V13）、4:2:0 记号与采样对照表、NV12 布局图、stride 公式+1080@128 算例+逐行错位推导+绿屏成因计算（V14）、glPixelStorei 代码、排查案例、实验四任务+full-range 边界、因果链回忆。checkpoint 两题原文保留。
 - `evidence/claim-ledger.json`：新增 V13/V14（open/low，待 G1 升级，note 说明提取来源）；V06 used_by 补 L13、E03 补 L11。
 - `evidence/source-registry.json`：新增 SRC-RN-AV-BASE（repo_doc），双向索引完整。
 - `quizzes/L01.json`：Q2 改挂 V14，答案补绿线/累积偏差依据。

@@ -1,6 +1,6 @@
 # 教材质量标准（lesson-quality-standard）
 
-> P6.4 交付物 · 2026-11-18。**状态：提案，待 G2 人工确认后才是正式标准。** AI 不得宣布本标准"已通过"。
+> P6.4 交付物 · 2026-11-18。**状态：已采纳为可迭代统一基准（D12 B3，2026-11-19 人工裁决）； Gold Standard L01 样板地位待 B4 人工阅读确认。** 十维度诊断结论仅为线索，不替代人工评分。
 > 适用对象：`courses/*/lessons/*.md` 教学版教材。参考样章：`courses/video-rendering-journey/lessons/L01-为什么视频不是-RGB.md`（P6 Gold Standard）。
 > 与既有门禁的关系：`check_chapter_arc.py` 是**结构性底线**（五要素存在性），`validate_site.py` 是**数据一致性底线**；本标准是**语义质量要求**，由人工审核（G2/G3）与 AI 诊断程序共同执行，自动校验不能代替语义审查。
 
