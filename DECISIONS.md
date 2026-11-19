@@ -84,7 +84,7 @@
 6. **教材质量规范为提案**：`references/lesson-quality-standard.md` 待 G2 人工确认后才算正式标准；AI 不宣布通过。十维度诊断结论仅为线索，不替代人工评分。
 7. **P6 内容修复边界**：只重写 L01；L02/L06/L11/L13 的 blocker/major 修复全部留 P7（G2 确认后），避免标准未确认前批量改内容。
 8. **README 不动**（D10.5 继续有效）：数字过时已登记 G-R1 决策提案，待授权。
-9. **commit/push 口径**：D09 的 P5 一次性授权已用于 5359259。**2026-11-18 用户新授权"先提交代码，保存修改"** → P6 全部产物本地 commit `3ce7b2f`（19 文件）+ 文档笔 `0b2c0a1`；**用户随后授权"push吧"** → 已 push 到 origin/master（远端 HEAD=`0b2c0a1`，本地与远端同步）。本次 commit+push 为一次性明确授权；后续阶段默认不 commit/push，除非用户再次授权。远程在线发布（GitHub Pages 等，D02）仍未授权。
+9. **commit/push 口径**：D09 的 P5 一次性授权已用于 5359259。**2026-11-18 用户新授权"先提交代码，保存修改"** → P6 全部产物本地 commit `3ce7b2f`（19 文件）+ 文档笔 `0b2c0a1`；**用户随后授权"push吧"** → 已 push 到 origin/master（远端 HEAD=`0b2c0a1`，本地与远端同步）。本次 commit+push 为一次性明确授权；后续阶段默认不 commit/push，除非用户再次授权。远程在线发布（GitHub Pages 等，D02）仍未授权。**2026-11-19 用户授权"同步最新更改到github"** → Loop 2 全部产物 commit `d4a9620`（27 文件：裁决执行 + reviews/ 8 份审核材料 + KCR 机制文档）已 push 到 origin/master（远端 HEAD=`d4a9620` 实测同步）。B13 由该授权解答（reviews/ 纳入 git）；`.zcode/`（外来 agent 产物）与 `old_content.js.tmp`（临时备份）未纳入（B14 待裁决）。
 10. **本机门禁命令用 `py -3`**：`python` 首选解析到 cygwin stub 不可用（环境事实，Python 3.12.10 实测可用）。
 
 ## D12 · V3.0 Loop 2 人工裁决记录（2026-11-19）

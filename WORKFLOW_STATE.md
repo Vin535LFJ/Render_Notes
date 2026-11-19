@@ -63,6 +63,6 @@
 3. 收到裁决后按 `reviews/EXECUTION_PLAN_V3.md` Loop 2：记录裁决入 DECISIONS.md → 执行 Category A（A1 数字更正/A3 build 排除 .zcode/A4 学习路径指南补 U7/A5 K-STRIDE 改挂/A6 Pass 勘误）→ P7.1 blocker（L02→L06→L13→L11）→ P7.2 逐篇深化（一次一篇）。
 4. 每阶段/每篇跑门禁（本机 `py -3`，`python` 解析到 cygwin stub 不可用）：`py -3 tools/build_site.py` → `py -3 tools/validate_site.py`（0 FAIL/0 WARN）→ `py -3 .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md` → `py -3 tools/review_gate.py`（只读）。
 5. 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）；VitePress 构建需 B6 授权。
-6. P6 产物已 commit+push（远端 HEAD 曾达 `650bb14`）；**V3.0 Loop 1 未 commit/push**（reviews/ 与状态文档改动待 B13 裁决及用户授权）。后续默认不 commit/push，除非明确授权（D09/D11.9）；在线发布（D02）未授权。
+6. P6 产物 commit `3ce7b2f`+`0b2c0a1`+`650bb14` 已 push；**Loop 2 产物 commit `d4a9620`（27 文件，含 reviews/ 8 份）已 push**（2026-11-19 用户授权"同步最新更改到github"，`ls-remote` 实测远端 HEAD=`d4a9620`，本地同步）。`.zcode/` 与 `old_content.js.tmp` 为外来/临时产物未纳入（B14 待裁决）。后续默认不 commit/push，除非明确授权（D09/D11.9）；在线发布（D02）未授权。
 7. 绝对不动：`.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、README（B5 前）、两份方案文档、已确认路线（B2 前）、claim 状态（G1 前）、外来产物 `.zcode/`+`old_content.js.tmp`（B14 前）、stash（B12 前）。执行结果写入 `CHANGELOG.md` 与本文件。
-8. 已知环境事实：本 turn `git ls-remote` 因网络/DNS 中断受阻，远端新鲜同步待网络恢复复核；本地 origin/master 引用=HEAD=`650bb14`。
+8. 环境事实：2026-11-19 网络已恢复（github.com:443 可达），`ls-remote` 实测远端 HEAD=`d4a9620` 与本地一致；早期 DNS 中断已解除。

@@ -40,6 +40,7 @@
 
 ### 边界与待续
 - 未 commit/push（D12.11）；未升级任何 claim（V13/V14/V15/V16 均 open 待 G1）；未填人工结论。
+- **git 同步（2026-11-19 用户授权"同步最新更改到github"）**：commit **`d4a9620`**（27 文件，+1289/−53：Loop 2 裁决执行产物 + reviews/ 8 份审核材料 + KCR 机制文档），已 push 到 origin/master（`650bb14..d4a9620`，`ls-remote` 实测远端 HEAD=`d4a962089254e6ad419ce1e010a1a969c381f7f2`，本地与远端同步）。`.zcode/`（外来 agent 产物）与 `old_content.js.tmp`（临时备份）按 B14 未纳入；**B13 由本次同步授权解答：reviews/ 已纳入 git**。
 - **未改 L01**（B4 待用户阅读；V13 表述修正建议待裁决）；未动 archive/memory/vendor/index.html/两份方案；外来产物 .zcode/old_content.js.tmp/stash 未触碰（B12/B14 待裁决）。
 - 待续：P7.1 L06（第三项）/L13（第二项，待 B10 断言登记裁决）/L11（第四项）；B6 VitePress 本地构建排 P10。
 - 仍待人工：B4（L01 认可）、B7/B8（V13/V14 升级）、B10–B15。
