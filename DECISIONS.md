@@ -2,7 +2,7 @@
 
 > 本文件记录 Render_Notes「AI Knowledge-to-Learning Engine 增量补齐」过程中的关键裁决与已失效信息。所有非关键技术决策采用合理默认值并在此登记，不反复询问用户。
 >
-> 更新：2026-11-18。相关计划见 `.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md`。
+> 更新：2026-11-18；2026-11-19 清理过期引用：P0 完整计划原件位于用户目录 `~/.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md`（会话级产物，不入仓库），其关键裁决已萃取至本文件（D01–D14）。
 
 ---
 
@@ -119,5 +119,27 @@
 - **保留不迁**：① `scripts/check_chapter_arc.py` 留原处（可执行契约，门禁命令路径不变，迁移后实测可运行）；② 原 SKILL.md 位置改为发现 stub（frontmatter 不变，维持技能发现）；③ `.workbuddy-ai/memory/**` 受保护不动（D09/D11）；④ `reviews/` 为项目治理材料，留原处（用户裁决）。
 - **防污染**：`tools/build_site.py`、`tools/validate_site.py`、`tools/build_vitepress_content.py` 排除列表新增 `.agent`（.zcode 污染教训 A3 的制度化）。
 - **规则**：读取优先、索引 stub、写入登记、禁区与 bundle 隔离等规则见 `.agent/README.md`；结构调整必须记录 DECISIONS.md。
-- **已知问题**：`DECISIONS.md:5` / `IMPLEMENTATION_PLAN.md:3` / `WORKFLOW_STATE.md:5` 引用的 `.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` 在仓库内不存在（计划实际位于用户目录 `~/.workbuddy-ai/plans/`），属过期引用；为不改写历史决策文本，留待后续清理。
+- **已知问题（已关闭，2026-11-19，用户授权清理）**：原 `.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` 仓库内死引用（DECISIONS:5 / IMPLEMENTATION_PLAN:3 / WORKFLOW_STATE:5）已改为如实指向——计划原件位于用户目录 `~/.workbuddy-ai/plans/`（会话级产物，不入仓库），关键裁决已萃取至 DECISIONS.md（D01–D14）。
 - **git 同步（2026-11-19 用户授权"授权 commit + push"）**：结构治理 commit **`f5d4ecf`**（26 文件，+258/−91；git 识别 7 处 100% rename）已 push 到 origin/master（`656d107..f5d4ecf`，`ls-remote` 实测远端 HEAD=`f5d4ecf`，本地同步）。**仅 push 源码，未做在线发布**（D02 未授权）。
+
+## D15 · 多智能体文档治理架构基座（2026-11-19，用户提案 + 四项裁决）
+
+- **裁决**：在 D14 统一仓库基础上**增量**落地治理能力（不改变 D14 目录归属）。采纳用户 Multi-Agent Documentation Governance 提案。四项执行口径：① 范围=最小基座（constitution / MADR / 标准 / 模板 / 变更流程 / 注册表 schema+生成器 / 适配入口）；② 注册表=frontmatter 事实源 + `tools/build_document_registry.py` 生成（生成物不手改）；③ 适配入口=全客户端（根 `CLAUDE.md`/`AGENTS.md`、`.cursor/rules/`、`.github/copilot-instructions.md`、`.gemini/GEMINI.md` + 既有 Workbuddy stub），只跳转不复制；④ OpenSpec=借鉴思想自研 `.agent/changes/` 轻量流程。
+- **新增**：`.agent/constitution/` 四件套（PROJECT_PRINCIPLES / AGENT_RULES / DOCUMENTATION_POLICY / HUMAN_APPROVAL_POLICY）；`.agent/decisions/`（MADR：README + adr-template + ADR-0001 采纳本架构；`DECISIONS.md` 保留为历史索引，不机械拆分）；`.agent/standards/documentation-types.md`；`.agent/templates/`（change-proposal / agent-handoff）；`.agent/changes/`（轻量变更流程）；`.agent/indexes/`（registry schema + 生成物 registry）；`tools/build_document_registry.py`；五个客户端适配入口；`.gitignore` 追加 `.agent/runs/`。
+- **写入所有权五规则**（AGENT_RULES）：单写者 / 默认只读+任务授权 / 重要任务 worktree / 生成物非源 / 完成必交接。
+- **三级治理 + 状态机**：L1 权威 / L2 工作 / L3 历史；`draft→proposed→under_review→approved→active→superseded→archived`；存量文档 frontmatter 渐进补齐（注册表如实标记 unregistered，不批量回填）。
+- **排除列表同步**：build_site / validate_site / build_vitepress_content 新增 `.gemini`/`.cursor`/`.github` 与根 `CLAUDE.md`/`AGENTS.md` 排除（适配入口不进知识 bundle）。
+- **Dogfooding 修正**：治理文档自身补 YAML frontmatter（初版误用 blockquote 元数据，注册表无法识别，已修正）。注册表初版实测：**104 篇**（frontmatter 26 / unregistered 78；L1 19 / L2 14 / L3 13 / unclassified 58）。
+- **边界**：不预建 6 个空技能目录（首次使用时创建）；不批量给存量文档打状态；DECISIONS 历史不拆分；Run Logs 本地 gitignore + 摘要归档 archive/；注册表一致性门禁接入 validate 留 P8。
+
+## D16 · 程序级裁剪与收口（2026-11-19，用户批准 PD-Q1/Q2/Q7/Q8）
+
+- **裁决**：用户批准"PD-Q7 裁剪方案，PD-Q1/PD-Q2/PD-Q8 按推荐执行，之后只推进 Engine 一条线"。程序级决策权威在 `AI-Knowledge\ai-knowledge-program\decisions\`（PD-001…003），本条为 Engine 内指针记录。
+- **PD-Q7 裁剪（PD-003 accepted）**：Engine 为唯一活跃线（收口 → G1/G2 裁决 → P7.2 逐篇 → P8 KCR 闭环 → P9 最小状态机 → P10 一批新资料端到端验收）；learning-experience-design / P03 Governance / P04 Radar **冻结在现有成果**（冻结≠删除，解冻条件见 PD-003）；不新建知识库/skill 收录类独立项目（供应库=项目02，知识收录=Engine P8 source inbox）。
+- **PD-Q1 收口**：三批未提交改动按来源拆分——`5a4de84`（D15 治理基座，31 文件）/ `a45ffa9`（CHG-0001 P7 教材+P2 Skill，33 文件）/ `7c05bc7`（P8/P9 预研：kcr_impact+publish allowlist+decision-kit，20 文件）+ 本留痕笔。修正 `test_publish_boundary.py` 断言笔误（移除 8 篇 reviews 后应为 69 而非 77），修正后 11/11 OK。
+- **发布边界生效**：allowlist 使 reviews/ 不再进入学习站 bundle，build 实测 **69 docs**（此前 77 含 8 篇 reviews）；archive 行为不变（D10.4）。
+- **PD-Q2**：P03 `agent-workspace-governance` 本地 git `dec60ba`（39 文件）/ P04 `github-project-radar` 本地 git `942530b`（30 文件）；均无远程（PD-Q3 另行授权）；测试 25/38 OK 本轮实测。
+- **PD-Q8**：`program-office-delivery/` 10 份交付副本安全删除（回收站可恢复，权威原件在程序办公室）；`.qoder-input-images/` 加入 .gitignore（agent 输入缓存，架构图已归档办公室 references/）。
+- **门禁实测（收口复跑）**：build 69 docs / 17 sections / 124 terms / 19 lessons / 7 labs / 504 cards；validate 11 checks 0 FAIL 0 WARN；arc 5/5；review_gate 37 claims（16 verified / 14 open / 7 conditional）误标 0；publish boundary 11/11。
+- **待办**：Render_Notes 迁入 AI-Knowledge 仍被会话工作区占用阻塞（PD-002 收尾，需绑定其他目录的会话执行）；G1/G2/G3 待人工（reviews/decision-kit/）；stash@{0} 原样（B12）。
+- **git 同步**：收口四笔本地提交完成后 push 到 origin/master（用户 PD-Q1 授权含 push）；远端 HEAD 见 CHANGELOG 留痕。仅 push 源码，未做在线发布（D02 未授权）。

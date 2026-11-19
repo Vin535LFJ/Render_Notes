@@ -5,6 +5,8 @@
 > 口径：一切以实际代码与本地文件实测为准；旧方案文档、README 数字、历史对话描述不作为执行依据（D08）。
 > 配套文件：`CURRENT_GAPS.md`（缺口）、`NEXT_PHASE_PLAN.md`（P6–P10 计划）。
 
+> **增量校正（2026-11-19，不覆盖下方基线快照）**：本文件 §1 的 Git 基线（`5359259` / 审计 `2026-11-18`）是 P6 时点快照，仍按原样保留。当前实测 HEAD 为 `474c667`，工作区有未提交增量；"19 课中仅 5 课有教学正文"经复核仍成立。当前权威状态以 `WORKFLOW_STATE.md`、`reviews/REVIEW_STATUS.md` 与 `reviews/decision-kit/README.md` 为准；变更历史以 `CHANGELOG.md` 为准。单一事实源规则见 `.agent/constitution/DOCUMENTATION_POLICY.md`。
+
 ---
 
 ## 1. Git 基线（实测）

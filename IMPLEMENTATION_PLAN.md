@@ -1,6 +1,6 @@
 # 实施计划（精简版）
 
-> 完整计划见 `.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md`（已获用户批准）。本文件是仓库内的执行索引，随阶段推进更新勾选状态。
+> 完整计划为会话级批准产物，原件位于用户目录 `~/.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md`（不入仓库）；其关键裁决已萃取至 `DECISIONS.md`（D01–D14）。本文件是仓库内的执行索引，随阶段推进更新勾选状态。
 
 **口径**：增量补齐真正缺口；离线 `web/` 与在线 VitePress 两套并存；不重建、不覆盖已有成果。详见 `DECISIONS.md`。
 
