@@ -41,7 +41,7 @@
 ## G2-03 · 教材质量规范是否正式采用
 
 - **问题**：`lesson-quality-standard.md`（P6.4 提案）是否作为后续所有教材统一质量基准。
-- **位置**：.workbuddy-ai/skills/research-to-learning/references/lesson-quality-standard.md（10 节）；SKILL.md 已登记阅读指引/Phase5/Helpers。
+- **位置**：.agent/skills/research-to-learning/references/lesson-quality-standard.md（10 节）；SKILL.md 已登记阅读指引/Phase5/Helpers（2026-11-19 起文档正文迁入 .agent/，D14）。
 - **事实依据**（本轮通读评估）：
   - 十维度（§2）覆盖 V3.0 §3.2 全部要求：开篇动机/知识展开/公式推导/直观模型/图解/真实案例/工程代码/实验任务/章节总结/阅读体验。
   - §3 六问叙事、§4 类比边界、§5 数学三件套（符号→算例→工程后果）、§7 引用与断言纪律、§8 主动回忆、§10 阅读体验——与 V3.0 教学叙事要求一致。

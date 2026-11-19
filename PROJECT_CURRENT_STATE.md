@@ -26,7 +26,7 @@
 00-导航与索引/  01-基础理论/  02-解码与播放链路/  03-图形与GPU工程/
 04-跨平台与高性能架构/  05-项目实战/  06-面试知识库/  07-3D渲染与算法实现/
 archive/（只读）  courses/  evidence/  knowledge-model/  tools/  web/  site-vitepress/
-.workbuddy-ai/skills/research-to-learning/
+.agent/（统一智能体文档仓库，D14）  .workbuddy-ai/（仅索引 stub + scripts + memory）  reviews/（治理审核材料）
 DECISIONS.md  WORKFLOW_STATE.md  IMPLEMENTATION_PLAN.md  CHANGELOG.md  README.md
 Master Prompt：构建 AI Knowledge-to-Learning Engine.md（旧方案，仅参考）
 Render_Notes：从知识库到 AI 原生教学系统的工作流设计.md（旧方案，仅参考）
@@ -65,7 +65,7 @@ Render_Notes：从知识库到 AI 原生教学系统的工作流设计.md（旧�
 - 反馈闭环：localStorage 队列 + JSON 导出 + `tools/feedback.json`（当前空）+ `report_feedback.py` 只读聚合。不自动改任何状态。
 
 ### 4.4 Skill（单一综合 Skill，角色契约齐全）
-- `.workbuddy-ai/skills/research-to-learning/`：SKILL.md（五阶段 + 映射角色 1b/4b/5b）、assets（chapter/lesson 模板）、references（workflow-details / evidence-and-claims / quiz-design / practice-and-review）、scripts/check_chapter_arc.py。
+- 技能文档正文位于 `.agent/skills/research-to-learning/`（SKILL.md 五阶段 + 映射角色 1b/4b/5b、assets 模板、references 五篇）；`.workbuddy-ai/skills/research-to-learning/` 仅保留发现 stub 与 scripts/check_chapter_arc.py（门禁命令路径不变，D14）。
 - arc 检查是**结构性底线**（标题/引语正则匹配五要素），不做语义判断。教材语义质量标准此前缺失——P6.4 本次补齐（`references/lesson-quality-standard.md`，待 G2 人工确认）。
 
 ### 4.5 发布层（两套并存，一处已知限制）

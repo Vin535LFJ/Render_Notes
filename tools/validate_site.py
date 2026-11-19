@@ -69,6 +69,7 @@ def markdown_files() -> list[Path]:
         and "site-vitepress" not in p.parts
         and "node_modules" not in p.parts
         and ".workbuddy-ai" not in p.parts
+        and ".agent" not in p.parts  # D14：智能体文档仓库不进知识 bundle
         and "archive" not in p.parts
     )
 

@@ -4,6 +4,24 @@
 > 权威口径见 `DECISIONS.md`；当前阶段见 `WORKFLOW_STATE.md`。
 > P5 + Part B 执行期间遵循 D09（不 commit/push）；2026-11-18 用户新授权 commit + push 到 origin/master，见文末"git 提交"段与 DECISIONS.md D09 更新。
 
+## 2026-11-19 · 智能体文档统一仓库 .agent/（D14）
+
+### 结构变更（用户裁决四项：文档迁移+脚本留原 / reviews/ 不动 / zcode 归档并提交 / README 合一）
+- 建立 `.agent/` 公共智能体文档仓库（入 git）：`skills/research-to-learning/`（SKILL.md + references 5 篇 + assets 2 篇，自 `.workbuddy-ai/skills/` 迁入）、`plans/plan-sess_a45a3e3b-….md`（自 `.zcode/plans/` 归档，B14 裁决：归档并提交）。
+- `.workbuddy-ai/` 只做索引：新增 `README.md` 索引；技能 `SKILL.md` 改为发现 stub（frontmatter 保留）；`scripts/check_chapter_arc.py` **不迁移**（门禁命令路径不变，迁移后实测可运行）；`memory/` 受保护不动。
+- `.zcode/` 清空后移除（回收站可恢复）；`old_content.js.tmp` 仍待 B14 清理裁决。
+- 规则与总索引：`.agent/README.md`（读取规则 / 索引 stub 规则 / 写入规则 / 禁区 / bundle 隔离 / 统一索引）。
+
+### 引用同步
+- 路径引用更新：`README.md`、`00-导航与索引/一帧画面的探索之旅.md`（2 处）、`NEXT_PHASE_PLAN.md`、`courses/video-rendering-journey/G2-审核材料-P6.md`、`reviews/G2-curriculum-review.md`、`PROJECT_CURRENT_STATE.md`（结构树 + §4.4）、`IMPLEMENTATION_PLAN.md`。
+- 三个构建工具排除列表新增 `.agent`（`tools/build_site.py` / `tools/validate_site.py` / `tools/build_vitepress_content.py`），防知识 bundle 污染。
+- 门禁命令（`check_chapter_arc.py` 路径）不变，WORKFLOW_STATE / README / courses README / review_gate.py 无需改动。
+
+### 实测（迁移后重建）
+- build：**77 documents / 18 sections / 124 terms / 8 units / 19 lessons / 7 labs / 559 term cards / 2510 KB**（= 69 知识 + 8 reviews；`.agent` 与 `.workbuddy-ai` 均排除，篇数与迁移前一致，无污染）。
+- validate：**11 checks / 0 FAIL / 0 WARN**；arc：**5/5 OK**；review_gate：**33 claims 误标 0**。
+- 边界：未升级任何 claim；未填人工结论；stash 未动（B12）；`old_content.js.tmp` 未动（B14 部分）。
+
 ## 2026-11-19 · Master Prompt V3.0 · Loop 2 裁决后执行（部分）
 
 > 收到用户裁决（D12）+ 新增 Knowledge Change Review 机制需求（D13）。网络恢复，权威来源核验完成。

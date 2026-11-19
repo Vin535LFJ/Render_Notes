@@ -15,7 +15,7 @@
 | P6.1 五篇样章深度诊断（10 维度 + 源文档逐条核对） | `courses/video-rendering-journey/教材质量诊断.md`（含逐章问题清单、severity、证据行号） | 本次完成 |
 | P6.2 课程映射检查 + 覆盖矩阵 | `courses/video-rendering-journey/课程覆盖矩阵.md`（19 课 × 元数据/正文/Quiz/Claim/Lab/状态） | 本次完成 |
 | P6.3 Gold Standard Lesson | 重写 `lessons/L01-为什么视频不是-RGB.md`（选 L01，理由见诊断 §4）；配套：新断言 V13/V14（open，待 G1）、quiz L01-Q2 改挂 V14、两层 course.json L01 乱码目标修复、pilot next 指针对齐路线、ledger used_by 补漏 | 本次完成 |
-| P6.4 教材设计标准 | `.workbuddy-ai/skills/research-to-learning/references/lesson-quality-standard.md` + SKILL.md 登记（不新建顶层 Skill） | 本次完成（标准本身待 G2 人工确认后才算正式通过） |
+| P6.4 教材设计标准 | `.agent/skills/research-to-learning/references/lesson-quality-standard.md` + SKILL.md 登记（不新建顶层 Skill） | 本次完成（标准本身待 G2 人工确认后才算正式通过） |
 | G2 审核材料 | `courses/video-rendering-journey/G2-审核材料-P6.md`（诊断摘要 + 变更对照 + 待拍板问题 + 空白人工评分表） | 本次完成 |
 
 **P6 内修复边界**：只修与 Gold Standard 直接相关的数据（L01 目标乱码、V13/V14 登记、quiz 挂接、next 指针、used_by 补漏）。L02/L06/L11/L13 的内容修复一律留给 P7（诊断已给出精确修复方案），避免在质量标准未经人工确认前批量改内容。

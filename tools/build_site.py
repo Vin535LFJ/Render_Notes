@@ -443,6 +443,7 @@ def main() -> None:
         and "site-vitepress" not in path.parts
         and "node_modules" not in path.parts
         and ".workbuddy-ai" not in path.parts
+        and ".agent" not in path.parts  # D14：统一智能体文档仓库，不进知识 bundle
         and ".zcode" not in path.parts  # D12/A3：排除外部 agent 工具产物，避免污染知识 bundle
     ]
     markdown_files.sort(key=lambda p: sort_key(relpath(p)))

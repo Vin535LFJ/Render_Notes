@@ -29,7 +29,7 @@ EXCLUDED_FILES = {
     "Master Prompt：构建 AI Knowledge-to-Learning Engine.md",
     "Render_Notes：从知识库到 AI 原生教学系统的工作流设计.md",
 }
-EXCLUDED_TOP_DIRS = {"archive", "site-vitepress", "web", "node_modules", ".git", ".workbuddy-ai", "tools", "evidence", "knowledge-model"}
+EXCLUDED_TOP_DIRS = {"archive", "site-vitepress", "web", "node_modules", ".git", ".workbuddy-ai", ".agent", "tools", "evidence", "knowledge-model"}
 
 TOP_ORDER = [
     "00-导航与索引",

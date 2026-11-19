@@ -4,7 +4,7 @@
 >
 > 计划：`.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` · 裁决：`DECISIONS.md`
 
-**最后更新**：2026-11-19（Master Prompt V3.0 · Loop 2 部分执行） · **当前阶段**：P0–P6 + B1–B5 + V3-Loop1 完成；Loop 2 已记录裁决（D12）+ KCR 机制设计（D13）+ 执行已决安全项 + P7.1 第一项 L02 修复 · **续跑点**：P7.1 第二项 L06（待 B4/B10 相关裁决推进 L13）；**仍待人工**：B4（L01 阅读认可）、B7/B8（V13/V14 升级，核验已完成见 G1 §7）、B10–B15（未答复，不视为同意）。G3 仍未通过。
+**最后更新**：2026-11-19（Master Prompt V3.0 · Loop 2 部分执行） · **当前阶段**：P0–P6 + B1–B5 + V3-Loop1 完成；Loop 2 已记录裁决（D12）+ KCR 机制设计（D13）+ 执行已决安全项 + P7.1 第一项 L02 修复 + 智能体文档统一仓库 .agent/（D14） · **续跑点**：P7.1 第二项 L06（待 B4/B10 相关裁决推进 L13）；**仍待人工**：B4（L01 阅读认可）、B7/B8（V13/V14 升级，核验已完成见 G1 §7）、B10–B15（未答复，不视为同意）。G3 仍未通过。
 
 ---
 
@@ -64,5 +64,6 @@
 4. 每阶段/每篇跑门禁（本机 `py -3`，`python` 解析到 cygwin stub 不可用）：`py -3 tools/build_site.py` → `py -3 tools/validate_site.py`（0 FAIL/0 WARN）→ `py -3 .workbuddy-ai/skills/research-to-learning/scripts/check_chapter_arc.py courses/video-rendering-journey/lessons/*.md` → `py -3 tools/review_gate.py`（只读）。
 5. 改前端后额外做离线站浏览器 QA（file:// 与 http://localhost:8765 两路）；VitePress 构建需 B6 授权。
 6. P6 产物 commit `3ce7b2f`+`0b2c0a1`+`650bb14` 已 push；**Loop 2 产物 commit `d4a9620`（27 文件，含 reviews/ 8 份）已 push**（2026-11-19 用户授权"同步最新更改到github"，`ls-remote` 实测远端 HEAD=`d4a9620`，本地同步）。`.zcode/` 与 `old_content.js.tmp` 为外来/临时产物未纳入（B14 待裁决）。后续默认不 commit/push，除非明确授权（D09/D11.9）；在线发布（D02）未授权。
-7. 绝对不动：`.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、README（B5 前）、两份方案文档、已确认路线（B2 前）、claim 状态（G1 前）、外来产物 `.zcode/`+`old_content.js.tmp`（B14 前）、stash（B12 前）。执行结果写入 `CHANGELOG.md` 与本文件。
+7. 绝对不动：`.workbuddy-ai/memory/**`、`archive/**`、`web/vendor/**`、`web/index.html`、README（B5 前）、两份方案文档、已确认路线（B2 前）、claim 状态（G1 前）、stash（B12 前）、`.agent/**`（统一智能体文档仓库，结构变更走 DECISIONS 记录 + KCR）。外来产物：`.zcode/` 已按 B14 归档入 `.agent/plans/` 并提交、空目录已移除（D14）；`old_content.js.tmp` 仍待清理裁决。执行结果写入 `CHANGELOG.md` 与本文件。
 8. 环境事实：2026-11-19 网络已恢复（github.com:443 可达），`ls-remote` 实测远端 HEAD=`d4a9620` 与本地一致；早期 DNS 中断已解除。
+9. 结构变更（D14，2026-11-19）：智能体文档统一迁入 `.agent/`（技能文档 + zcode 计划）；`.workbuddy-ai/` 只留索引 stub + scripts + memory；三个构建工具排除 `.agent`；门禁命令路径不变（scripts 未迁移）。统一规则与索引：`.agent/README.md`。

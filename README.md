@@ -228,7 +228,7 @@ python tools/build_site.py
 
 - 修复快捷键 bug：`Ctrl+C` 等组合键不再触发单字母导航；选中文字时按字母也不跳转。
 - 新增 [一帧画面的探索之旅](00-导航与索引/一帧画面的探索之旅.md)：用"钩子→概念→桥→实践"把 L0–L7 重排成六篇章故事线。
-- 新增项目技能 [research-to-learning](.workbuddy-ai/skills/research-to-learning/SKILL.md)：五角色调研→学习工作流（Research Agent / Knowledge Architect / Documentation Writer / Learning Designer / Knowledge Reviewer），含章节弧线校验脚本。
+- 新增项目技能 [research-to-learning](.agent/skills/research-to-learning/SKILL.md)：五角色调研→学习工作流（Research Agent / Knowledge Architect / Documentation Writer / Learning Designer / Knowledge Reviewer），含章节弧线校验脚本（技能文档正文迁入统一智能体仓库 `.agent/`，D14）。
 - 概念引入说明补入两张 Mermaid 图（三维度 / Pass-RenderGraph 桥梁），站点内可直接放大查看。
 
 ## 最近更新（2026-11-18 · 补充）

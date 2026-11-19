@@ -64,7 +64,7 @@
 - [x] P6.1 五篇样章深度诊断：`courses/video-rendering-journey/教材质量诊断.md`（十维度 + 源文档行号核对；2 处 blocker 引用/目标问题 + 1 处 blocker 断言链断裂）
 - [x] P6.2 课程覆盖矩阵：`courses/video-rendering-journey/课程覆盖矩阵.md`（19 课 × 元数据/正文/Quiz/Claim/Lab；next/先修/目标漂移核对）
 - [x] P6.3 Gold Standard：重写 `lessons/L01-为什么视频不是-RGB.md`；新断言 V13/V14（open 待 G1）+ SRC-RN-AV-BASE；quiz L01-Q2 改挂 V14；L01 乱码目标修复（两层）；pilot next 对齐路线；V06/E03 used_by 补漏
-- [x] P6.4 教材质量规范提案：`.workbuddy-ai/skills/research-to-learning/references/lesson-quality-standard.md` + SKILL.md 登记（待 G2 确认）
+- [x] P6.4 教材质量规范提案：`.agent/skills/research-to-learning/references/lesson-quality-standard.md` + SKILL.md 登记（待 G2 确认）
 - [x] G2 审核材料：`courses/video-rendering-journey/G2-审核材料-P6.md`（含 6 个待拍板问题 + 空白评分表）
 - [x] 门禁：build 68 docs / validate 11 checks 0 FAIL 0 WARN / arc 5/5 OK
 - [ ] **G2 人工审核**（最重要出口条件；未确认前不启动 P7 内容生产）

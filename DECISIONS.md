@@ -111,3 +111,12 @@
 - **机制四阶段**：① 新研究报告进入 → ② 影响分析（Source→Claim→Concept→Lesson→Quiz→Course）→ ③ 变更提案（新增/修改/废弃/重新验证，逐项带证据与受影响产物）→ ④ 人工审核（批准/驳回/补充研究，AI 不自主）→ ⑤ 增量更新教材与网站（保留版本记录与来源追溯，过门禁）。
 - **设计交付**：`reviews/KNOWLEDGE_CHANGE_REVIEW.md`（机制设计 + JSON schema 提案 + 与现有 tools/evidence 集成方案）。实现归 P8，复用 claim-ledger/source-registry/concepts/course.json/validate_site，不重建。
 - **约束**：变更提案不得自动替代人工审核；废弃 claim 保留 ID 改状态加 note（evidence-and-claims 硬规则 5）；增量更新不重生成全库。
+
+## D14 · 智能体文档统一仓库 `.agent/`（2026-11-19，用户需求"统一文件仓库"）
+
+- **裁决**：建立 `.agent/` 作为公共智能体文档仓库（入 git，随仓库同步到 GitHub）。各智能体私有文件夹只做索引，不再重复存放文档正文；任何智能体切换时只读 `.agent/README.md`。
+- **迁移**（取代 D12 的技能位置裁定）：`.workbuddy-ai/skills/research-to-learning/` 文档正文（SKILL.md + references 5 篇 + assets 2 篇，共 8 文件）迁入 `.agent/skills/research-to-learning/`；`.zcode/plans/plan-sess_*.md` 归档入 `.agent/plans/` 并纳入 git（**B14 就此裁决：归档并提交**；`.zcode/` 空目录已移除）。
+- **保留不迁**：① `scripts/check_chapter_arc.py` 留原处（可执行契约，门禁命令路径不变，迁移后实测可运行）；② 原 SKILL.md 位置改为发现 stub（frontmatter 不变，维持技能发现）；③ `.workbuddy-ai/memory/**` 受保护不动（D09/D11）；④ `reviews/` 为项目治理材料，留原处（用户裁决）。
+- **防污染**：`tools/build_site.py`、`tools/validate_site.py`、`tools/build_vitepress_content.py` 排除列表新增 `.agent`（.zcode 污染教训 A3 的制度化）。
+- **规则**：读取优先、索引 stub、写入登记、禁区与 bundle 隔离等规则见 `.agent/README.md`；结构调整必须记录 DECISIONS.md。
+- **已知问题**：`DECISIONS.md:5` / `IMPLEMENTATION_PLAN.md:3` / `WORKFLOW_STATE.md:5` 引用的 `.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` 在仓库内不存在（计划实际位于用户目录 `~/.workbuddy-ai/plans/`），属过期引用；为不改写历史决策文本，留待后续清理。
