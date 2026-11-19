@@ -14,6 +14,7 @@
 - **PD-Q8**：`program-office-delivery/` 10 份交付副本→回收站（可恢复，原件在办公室）；`.qoder-input-images/` 加入 .gitignore。
 - **门禁实测（收口复跑）**：build 69 docs / 17 sections / 124 terms / 19 lessons / 7 labs / 504 cards · validate **11 checks 0 FAIL 0 WARN** · arc **5/5** · review_gate **37 claims（16 verified / 14 open / 7 conditional）误标 0** · publish boundary 11/11。
 - **待办**：Render_Notes 迁入 AI-Knowledge（会话占用，需绑定其他目录的会话）；G1/G2/G3 人工裁决（decision-kit）；stash（B12）。
+- **git 同步**：四笔已 push（`474c667..9bfa732`，首次遇网络 RPC/SSL 抖动重试成功，ls-remote 实测远端 HEAD=`9bfa732`）。仅 push 源码，未在线发布（D02）。
 
 ## 2026-11-19 · 多智能体文档治理基座（D15 / ADR-0001）
 

@@ -142,4 +142,4 @@
 - **PD-Q8**：`program-office-delivery/` 10 份交付副本安全删除（回收站可恢复，权威原件在程序办公室）；`.qoder-input-images/` 加入 .gitignore（agent 输入缓存，架构图已归档办公室 references/）。
 - **门禁实测（收口复跑）**：build 69 docs / 17 sections / 124 terms / 19 lessons / 7 labs / 504 cards；validate 11 checks 0 FAIL 0 WARN；arc 5/5；review_gate 37 claims（16 verified / 14 open / 7 conditional）误标 0；publish boundary 11/11。
 - **待办**：Render_Notes 迁入 AI-Knowledge 仍被会话工作区占用阻塞（PD-002 收尾，需绑定其他目录的会话执行）；G1/G2/G3 待人工（reviews/decision-kit/）；stash@{0} 原样（B12）。
-- **git 同步**：收口四笔本地提交完成后 push 到 origin/master（用户 PD-Q1 授权含 push）；远端 HEAD 见 CHANGELOG 留痕。仅 push 源码，未做在线发布（D02 未授权）。
+- **git 同步**：收口四笔 `5a4de84`/`a45ffa9`/`7c05bc7`/`9bfa732` 已 push 到 origin/master（用户 PD-Q1 授权含 push；首次推送遇网络 RPC/SSL 抖动，重试成功，`ls-remote` 实测远端 HEAD=`9bfa732`，本地同步）。仅 push 源码，未做在线发布（D02 未授权）。
