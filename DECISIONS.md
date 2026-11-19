@@ -120,3 +120,4 @@
 - **防污染**：`tools/build_site.py`、`tools/validate_site.py`、`tools/build_vitepress_content.py` 排除列表新增 `.agent`（.zcode 污染教训 A3 的制度化）。
 - **规则**：读取优先、索引 stub、写入登记、禁区与 bundle 隔离等规则见 `.agent/README.md`；结构调整必须记录 DECISIONS.md。
 - **已知问题**：`DECISIONS.md:5` / `IMPLEMENTATION_PLAN.md:3` / `WORKFLOW_STATE.md:5` 引用的 `.workbuddy-ai/plans/quantum-nebula-newton-ffFN4E3P.md` 在仓库内不存在（计划实际位于用户目录 `~/.workbuddy-ai/plans/`），属过期引用；为不改写历史决策文本，留待后续清理。
+- **git 同步（2026-11-19 用户授权"授权 commit + push"）**：结构治理 commit **`f5d4ecf`**（26 文件，+258/−91；git 识别 7 处 100% rename）已 push 到 origin/master（`656d107..f5d4ecf`，`ls-remote` 实测远端 HEAD=`f5d4ecf`，本地同步）。**仅 push 源码，未做在线发布**（D02 未授权）。

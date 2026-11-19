@@ -22,6 +22,9 @@
 - validate：**11 checks / 0 FAIL / 0 WARN**；arc：**5/5 OK**；review_gate：**33 claims 误标 0**。
 - 边界：未升级任何 claim；未填人工结论；stash 未动（B12）；`old_content.js.tmp` 未动（B14 部分）。
 
+### git 同步（2026-11-19 用户授权"授权 commit + push"）
+- 结构治理 commit **`f5d4ecf`**（26 文件，+258/−91；git 识别 7 处 100% rename）已 push 到 origin/master（`656d107..f5d4ecf`）；`ls-remote` 实测远端 HEAD=`f5d4ecfa65480abcb5c276617c227c5da9d89cfb`，本地与远端同步。**仅 push 源码，未做在线发布**（D02 未授权）。
+
 ## 2026-11-19 · Master Prompt V3.0 · Loop 2 裁决后执行（部分）
 
 > 收到用户裁决（D12）+ 新增 Knowledge Change Review 机制需求（D13）。网络恢复，权威来源核验完成。
